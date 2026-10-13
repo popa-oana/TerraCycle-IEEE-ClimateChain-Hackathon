@@ -28,3 +28,6 @@ Scopes: `backend`, `frontend`, `contracts`, `ml`, `docs`.
 - Every PR needs one approval from someone other than its author.
 - Delete the branch after merging.
 - Never commit secrets (`.env`, private keys, API keys).
+- Database changes only through an Alembic migration included in the PR
+  (`alembic revision --autogenerate -m "..."`). Never edit the schema by hand.
+- Never edit a migration that has already been merged; add a new one.

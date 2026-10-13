@@ -40,6 +40,14 @@ python -m venv .venv
 pip install -r backend/requirements-dev.txt
 ```
 
+### 3b. Create the database tables
+
+```powershell
+alembic upgrade head
+```
+
+Run this again after pulling changes that add migrations.
+
 ### 4. Run the API
 
 ```powershell
