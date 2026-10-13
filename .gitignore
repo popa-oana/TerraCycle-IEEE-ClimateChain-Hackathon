@@ -1,0 +1,41 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# --- python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# --- node ---
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+
+# --- foundry ---
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# --- local data / logs ---
+pgdata/
+*.log
+*.sqlite3
+
+# --- ide / os ---
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
