@@ -15,8 +15,8 @@ Functionalitati:
 - Afiseaza statistici descriptive.
 - Salveaza un CSV curatat.
 
-Rulare din PowerShell:
-    python inspect_ndvi.py
+Rulare din PowerShell (din radacina repo-ului):
+    python scripts/inspect_ndvi.py
 """
 
 import sys
@@ -25,11 +25,16 @@ from pathlib import Path
 import pandas as pd
 
 
+# Ancoram caile la radacina repo-ului, ca scriptul sa functioneze
+# indiferent de directorul din care este rulat.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
 # ============================================================
 # 1. CONFIGURARE
 # ============================================================
 
-DATA_DIR = Path("data/ndvi")
+DATA_DIR = REPO_ROOT / "data/ndvi"
 
 # Preferam sezonul complet, apoi exportul de test.
 CANDIDATES = [
@@ -51,7 +56,7 @@ path = next(
 
 if path is None:
     print("EROARE: Nu exista niciun CSV NDVI.")
-    print("Ruleaza mai intai export_ndvi.py")
+    print("Ruleaza mai intai scripts/export_ndvi.py")
     sys.exit(1)
 
 print(f"\nInspectez: {path}")

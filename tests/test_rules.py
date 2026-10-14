@@ -3,9 +3,18 @@ test_rules.py — Testează verificatorul provizoriu de vegetație
 
 Trei scenarii cu date sintetice (NU măsurători satelitare reale).
 
-Rulare:
-    .venv/Scripts/python.exe test_rules.py
+Rulare (din radacina repo-ului):
+    .venv/Scripts/python.exe tests/test_rules.py
 """
+
+import sys
+from pathlib import Path
+
+# Ancoram importul la radacina repo-ului, ca testul sa functioneze
+# indiferent de directorul din care este rulat.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from backend.ml.rules import verify_vegetation
 

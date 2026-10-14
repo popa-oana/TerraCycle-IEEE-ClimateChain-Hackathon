@@ -1,0 +1,43 @@
+{
+  "parcel_id": "parcel_01",
+  "source_file": "data/ndvi/parcel_01_2024.csv",
+  "observation_count": 35,
+  "first_observation": "2024-03-03T00:00:00Z",
+  "last_observation": "2024-10-29T00:00:00Z",
+  "result": {
+    "verdict": "nonconform",
+    "verdict_code": 1,
+    "reason": "13/35 observations above NDVI threshold 0.35 (fraction=0.37, required=0.8)",
+    "valid_observations": 35,
+    "vegetated_count": 13,
+    "vegetated_fraction": 0.3714,
+    "thresholds": {
+      "ndvi_threshold": 0.35,
+      "required_fraction": 0.8,
+      "min_observations": 5
+    }
+  },
+  "validation_status": "experimental_only",
+  "limitations": [
+    "Pixel validity fraction (valid_pixel_fraction) is not available in the current CSV.",
+    "Complete temporal coverage has not been validated.",
+    "The demonstration polygon may include multiple agricultural fields.",
+    "Experimental NDVI thresholds (0.35) and fraction requirements (0.80) are not agronomically validated.",
+    "Manual labels have not yet been collected.",
+    "LightGBM has not been trained.",
+    "NDVI alone cannot demonstrate absence of herbicides, compliance with fertilization rules, or organic certification.",
+    "This provisional result must NOT authorize blockchain settlement or on-chain payments."
+  ],
+  "generated_at": "2026-10-14T20:58:11Z",
+  "model_version": "rule-based-v1",
+  "data_source": {
+    "provider": "Copernicus Data Space",
+    "dataset": "Sentinel-2 L2A",
+    "bands": [
+      "B04",
+      "B08",
+      "SCL"
+    ],
+    "method": "cloud-masked NDVI mean (SCL classes 4,5 retained)"
+  }
+}

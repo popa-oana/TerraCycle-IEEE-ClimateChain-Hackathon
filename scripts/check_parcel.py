@@ -1,4 +1,4 @@
-"""
+r"""
 check_parcel.py — Verifică structura GeoJSON a parcelei
 
 Validează faptul că fișierul data/parcels/parcel_01.geojson
@@ -6,14 +6,18 @@ este un FeatureCollection valid cu un singur Polygon închis.
 Nu verifică dacă parcela e în România sau dacă poligonul
 nu se auto-intersectează.
 
-Rulare:
-    .\.venv\Scripts\python.exe check_parcel.py
+Rulare (din radacina repo-ului):
+    .\.venv\Scripts\python.exe scripts\check_parcel.py
 """
 
 import json
 from pathlib import Path
 
-path = Path("data/parcels/parcel_01.geojson")
+# Ancoram caile la radacina repo-ului, ca scriptul sa functioneze
+# indiferent de directorul din care este rulat.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+path = REPO_ROOT / "data/parcels/parcel_01.geojson"
 
 if not path.exists():
     raise FileNotFoundError(
