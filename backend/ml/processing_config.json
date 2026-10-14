@@ -1,0 +1,37 @@
+{
+  "parcel_id": "parcel_01",
+  "parcel_geojson": "data/parcels/parcel_01.geojson",
+  "time_interval": {
+    "start": "2024-03-01",
+    "end": "2024-11-01",
+    "description": "Full season (March-October 2024)"
+  },
+  "collection": "SENTINEL2_L2A",
+  "output_csv": "data/ndvi/parcel_01_2024.csv",
+  "bands": [
+    "B04",
+    "B08",
+    "SCL"
+  ],
+  "ndvi_formula": "(B08 - B04) / (B08 + B04)",
+  "scl_accepted_classes": [
+    4,
+    5
+  ],
+  "scl_policy": {
+    "accepted": [
+      4,
+      5
+    ],
+    "accepted_description": "4: Vegetation, 5: Not vegetated (bare soil visible)",
+    "excluded_description": "Clouds, shadows, water, defective pixels, etc. (all other SCL classes)"
+  },
+  "min_valid_pixel_fraction": 0.5,
+  "temporal_coverage": {
+    "interval_length_days": 10,
+    "min_temporal_coverage": 0.5,
+    "min_observations_per_interval": 1
+  },
+  "min_valid_observations": 5,
+  "processing_version": "day4-v1.0.0"
+}

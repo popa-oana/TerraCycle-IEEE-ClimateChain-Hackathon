@@ -43,20 +43,24 @@ Sentinel-2 L2A via openEO (B04, B08, SCL)
     v
 SCL masking (retain classes 4, 5)
     |
-    v
-NDVI = (B08 - B04) / (B08 + B04)
+    +--> NDVI = (B08 - B04) / (B08 + B04)      --> mean over valid pixels
+    |
+    +--> valid mask (0/1)                       --> valid_pixel_fraction = mean
     |
     v
-Spatial aggregation (mean per parcel per date)
-    |
-    v
-CSV export (data/ndvi/parcel_01_2024.csv)
+CSV export, merged schema (data/ndvi/parcel_01_2024.csv)
+    parcel_id, acquired_at, scene_id, ndvi_mean, valid_pixel_fraction
     |
     v
 Data validation (timestamps, NDVI range, duplicates)
     |
     v
-Provisional rule-based verification (backend/ml/rules.py)
+Quality gating (backend/ml/quality.py)
+    - Rule C: drop observations with valid_pixel_fraction < 0.50
+    - Rule B: temporal coverage over fixed 10-day intervals
+    |
+    v
+Provisional rule-based verification (backend/ml/rules.py::verify_parcel)
     |
     v
 JSON result (data/features/parcel_01_provisional_result.json)
@@ -100,15 +104,28 @@ pip install pytest
 # Original test script (6 synthetic scenarios)
 .\.venv\Scripts\python.exe tests\test_rules.py
 
-# Comprehensive pytest suite (44 tests)
+# Comprehensive rules suite (44 tests)
 .\.venv\Scripts\python.exe -m pytest tests\test_rules_pytest.py -v
+
+# Day 4 quality / coverage / export-merge suite (42 tests)
+.\.venv\Scripts\python.exe -m pytest tests\test_quality.py -v
+
+# Everything (86 tests)
+.\.venv\Scripts\python.exe -m pytest tests\ -q
 ```
 
 ### Export New Satellite Data (requires Copernicus authentication)
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\export_ndvi.py
+.\.venv\Scripts\python.exe scripts\export_ndvi.py            # non-destructive (writes _quality.csv if target exists)
+.\.venv\Scripts\python.exe scripts\export_ndvi.py --force    # overwrite target CSV
+.\.venv\Scripts\python.exe scripts\export_ndvi.py --dry-run  # build the openEO graph without running a job
 ```
+
+The export reads all parameters from `backend/ml/processing_config.json`, computes
+both `ndvi_mean` (valid pixels only) and `valid_pixel_fraction` (accepted mask mean
+over the whole parcel), and merges them into the standard schema. It never overwrites
+an existing successful output unless `--force` is given.
 
 > Runnable pipeline scripts live in `scripts/` and tests in `tests/`.
 > All scripts anchor their paths to the repository root, so they work
@@ -124,16 +141,32 @@ pip install pytest
 |-----------|-------|-------------|
 | `ndvi_threshold` | **0.35** | NDVI above this value is classified as "vegetated" |
 | `required_fraction` | **0.80** (80%) | Minimum fraction of vegetated observations for `conform` |
-| `min_observations` | **5** | Minimum valid observations required for a verdict |
+| `min_observations` | **5** | Minimum valid observations required for a verdict (Rule A) |
+| `min_valid_pixel_fraction` | **0.50** | Minimum valid-pixel fraction per observation (Rule C) |
+| `min_temporal_coverage` | **0.50** | Minimum temporal coverage over the window (Rule B) |
+| `temporal_coverage_interval_days` | **10** | Fixed interval length for temporal coverage |
+
+All values come from `backend/ml/processing_config.json`.
 
 ### Decision Logic
 
-1. **Filter**: Remove observations with `None`, `NaN`, or NDVI outside `[-1, 1]`
-2. **Count**: If fewer than `min_observations` valid values remain → `inconclusive`
-3. **Classify**: Count how many valid observations have NDVI > `ndvi_threshold`
-4. **Decide**:
+1. **Filter (structural)**: Remove observations with `None`, `NaN`, or NDVI outside `[-1, 1]`
+2. **Quality gate (Rule C)**: If the CSV has a `valid_pixel_fraction` column, drop
+   observations whose fraction is `< min_valid_pixel_fraction` (or missing). If the
+   column is absent, no observation is dropped but `evidence_quality` is reported as
+   `"unknown"`.
+3. **Temporal coverage (Rule B)**: If the policy provides `window_start` and
+   `window_end`, compute coverage over fixed 10-day intervals. Coverage
+   `< min_temporal_coverage` → `inconclusive` (`INSUFFICIENT_TEMPORAL_COVERAGE`).
+4. **Count (Rule A)**: If fewer than `min_observations` quality-valid values remain → `inconclusive`
+5. **Classify**: Count how many quality-valid observations have NDVI > `ndvi_threshold`
+6. **Decide**:
    - If `vegetated_count / valid_count >= required_fraction` → `conform`
    - Otherwise → `nonconform`
+
+Temporal coverage is `intervals_with_valid_observations / total_intervals`. An
+interval is covered if it contains at least one valid observation; several
+observations in the same interval count once.
 
 ### Verdict Mapping (EIP-712/Solidity)
 
@@ -156,6 +189,9 @@ The following are **actual observations from Copernicus Sentinel-2 L2A**, export
 - **NDVI range**: 0.1053 to 0.9200
 - **NDVI mean**: 0.4044
 - **NDVI median**: 0.2157
+- **Temporal coverage**: 0.92 (23/25 intervals of 10 days over 2024-03-01..2024-11-01)
+- **Evidence quality**: `unknown` — this CSV predates the `valid_pixel_fraction`
+  column, so Rule C could not be applied (see Limitations).
 
 ### Provisional Verdict
 
@@ -172,9 +208,17 @@ The data shows high NDVI in March–May (vegetation season) followed by a sharp 
 > [!WARNING]
 > The following limitations apply to ALL outputs of this module.
 
-1. **Pixel validity fraction** (`valid_pixel_fraction`) is not yet available in the CSV. The openEO export aggregates spatially but does not separately export the fraction of cloud-free pixels per date.
+1. **Pixel validity fraction** (`valid_pixel_fraction`) support is implemented in the
+   export pipeline (`scripts/export_ndvi.py`) and in the verifier, but the real CSVs
+   currently committed under `data/ndvi/` predate the change and do not contain the
+   column. Live values require a Copernicus-authenticated re-export, which has not been
+   run. Until then, the verifier reports `evidence_quality: "unknown"` and does not apply
+   Rule C. The merge logic is covered by offline tests using mocked openEO outputs.
 
-2. **Complete temporal coverage** has not been validated. The quality metric described in Role_Crenguta.md §6 (splitting the window into weekly intervals and measuring coverage) is not yet implemented.
+2. **Temporal coverage** is now computed and enforced when the policy supplies a
+   verification window (`window_start`/`window_end`). The window is taken from
+   `processing_config.json` (`time_interval`). Observations with missing dates and
+   intervals with no valid observation are handled deterministically.
 
 3. **Demonstration polygon** may include multiple agricultural fields. The parcel boundary was manually digitized and has not been verified against cadastral records.
 
@@ -194,13 +238,17 @@ The data shows high NDVI in March–May (vegetation season) followed by a sharp 
 
 | Day | Deliverable |
 |-----|-------------|
-| 16 | Cloud mask quality metrics, valid pixel fraction, temporal coverage |
+| 16 | ✅ Cloud mask quality metrics, valid pixel fraction pipeline, temporal coverage |
 | 17 | Manual labeling with team (15–20 examples each), `labels.csv` |
 | 18 | Feature engineering, baseline + LightGBM (if labels justify) |
 | 19 | `verify_parcel()` with full evidence and temporal window filtering |
 | 20 | Evaluation without leakage, integration test with Corina |
 | 21–22 | Real data for all demo scenarios, frozen model/policy |
 | 23 | `docs/model.md` and `docs/limitations.md`; feature freeze |
+
+> Day 16 status: quality module, processing config, temporal coverage and the
+> integrated rules are implemented and tested. The only pending item is a live
+> Copernicus re-export to populate real `valid_pixel_fraction` values.
 
 ---
 
@@ -227,8 +275,11 @@ def verify_parcel(
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `parcel_id` | `str` | Parcel identifier (e.g., `"parcel_01"`) |
-| `policy` | `dict` | Verification policy. Optional keys: `ndvi_threshold` (float, default 0.35), `required_fraction` (float, default 0.80), `min_observations` (int, default 5) |
+| `policy` | `dict` | Verification policy. Optional keys: `ndvi_threshold` (0.35), `required_fraction` (0.80), `min_observations` (5), `min_valid_pixel_fraction` (0.50), `min_temporal_coverage` (0.50), `temporal_coverage_interval_days` (10), `window_start` (ISO date), `window_end` (ISO date, exclusive) |
 | `evidence_directory` | `str` | Path to directory containing NDVI CSV files (e.g., `"data/ndvi"`) |
+
+Rule B is applied only when both `window_start` and `window_end` are provided.
+Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
 
 ### Return Value
 
@@ -236,13 +287,17 @@ def verify_parcel(
 {
     "verdict": "conform" | "nonconform" | "inconclusive",
     "verdict_code": 0 | 1 | 2,
-    "reason_code": "RULE_BASED_DECISION" | "INSUFFICIENT_OBSERVATIONS" | "MISSING_EVIDENCE" | "CSV_READ_ERROR" | "INVALID_CSV_STRUCTURE",
+    "reason_code": "RULE_BASED_DECISION" | "INSUFFICIENT_OBSERVATIONS"
+                 | "INSUFFICIENT_TEMPORAL_COVERAGE" | "MISSING_EVIDENCE"
+                 | "CSV_READ_ERROR" | "INVALID_CSV_STRUCTURE",
     "reason": "Human-readable explanation of the verdict",
     "observations": [
         {
             "acquired_at": "2024-04-01T00:00:00Z",
             "ndvi_mean": 0.6543,
-            # "valid_pixel_fraction": 0.92  (when available)
+            "is_valid_observation": True,
+            # "valid_pixel_fraction": 0.92,      (when available)
+            # "quality_reason": "..."            (only when excluded)
         },
         ...
     ],
@@ -250,9 +305,20 @@ def verify_parcel(
         "valid_count": 35,
         "total_rows": 48,
         "excluded_count": 13,
+        "structural_excluded_count": 13,
+        "quality_excluded_count": 0,
         "vegetated_count": 13,
         "vegetated_fraction": 0.3714,
+        "quality_metadata_available": False,
+        "evidence_quality": "assessed" | "unknown",
+        "min_valid_pixel_fraction": 0.5,
+        "temporal_coverage": 0.92,
+        "covered_intervals": 23,
+        "total_intervals": 25,
+        "interval_length_days": 10,
         "inconclusive_reason": null | "INSUFFICIENT_OBSERVATIONS"
+                            | "INSUFFICIENT_TEMPORAL_COVERAGE",
+        "warnings": ["valid_pixel_fraction missing; pixel-quality rule (Rule C) not applied"]
     },
     "model": {
         "model_version": "rule-based-v1",
@@ -261,7 +327,12 @@ def verify_parcel(
         "thresholds": {
             "ndvi_threshold": 0.35,
             "required_fraction": 0.80,
-            "min_observations": 5
+            "min_observations": 5,
+            "min_valid_pixel_fraction": 0.5,
+            "min_temporal_coverage": 0.5,
+            "temporal_coverage_interval_days": 10,
+            "window_start": "2024-03-01",
+            "window_end": "2024-11-01"
         }
     },
     "source": {
@@ -277,9 +348,9 @@ def verify_parcel(
 
 | Verdict | Code | When |
 |---------|------|------|
-| `conform` | 0 | ≥ `required_fraction` of valid observations have NDVI > `ndvi_threshold` |
-| `nonconform` | 1 | < `required_fraction` vegetated, with ≥ `min_observations` valid |
-| `inconclusive` | 2 | < `min_observations` valid, missing CSV, read error, or invalid structure |
+| `conform` | 0 | ≥ `required_fraction` of quality-valid observations have NDVI > `ndvi_threshold` |
+| `nonconform` | 1 | < `required_fraction` vegetated, with ≥ `min_observations` valid and sufficient temporal coverage |
+| `inconclusive` | 2 | < `min_observations` valid, insufficient temporal coverage, missing CSV, read error, or invalid structure |
 
 ### Error Handling
 
@@ -287,15 +358,15 @@ def verify_parcel(
 - **CSV read error**: Returns `inconclusive` with `reason_code: "CSV_READ_ERROR"`
 - **Missing columns**: Returns `inconclusive` with `reason_code: "INVALID_CSV_STRUCTURE"`
 - **Insufficient observations**: Returns `inconclusive` with `reason_code: "INSUFFICIENT_OBSERVATIONS"`
+- **Insufficient temporal coverage**: Returns `inconclusive` with `reason_code: "INSUFFICIENT_TEMPORAL_COVERAGE"`
 - **The function never raises exceptions** — all error states are returned as `inconclusive` verdicts with descriptive reason codes
 
 ### What Remains Provisional
 
-- No temporal window filtering (evaluates all available dates)
-- No `valid_pixel_fraction` quality check
-- No temporal coverage metric
+- Live `valid_pixel_fraction` values (pipeline implemented; re-export pending auth)
 - Rule-based only (no ML model)
 - Thresholds are experimental working hypotheses
+- Evidence quality can be `"unknown"` when quality metadata is missing
 
 ### Usage Example
 
@@ -308,12 +379,17 @@ result = verify_parcel(
         "ndvi_threshold": 0.35,
         "required_fraction": 0.80,
         "min_observations": 5,
+        "min_valid_pixel_fraction": 0.50,   # Rule C
+        "min_temporal_coverage": 0.50,      # Rule B
+        "window_start": "2024-03-01",
+        "window_end": "2024-11-01",
     },
     evidence_directory="data/ndvi",
 )
 
-print(result["verdict"])       # "nonconform"
-print(result["verdict_code"])  # 1
+print(result["verdict"])          # "nonconform"
+print(result["verdict_code"])     # 1
+print(result["quality"]["temporal_coverage"])  # 0.92
 ```
 
 ### Direct Low-Level Function

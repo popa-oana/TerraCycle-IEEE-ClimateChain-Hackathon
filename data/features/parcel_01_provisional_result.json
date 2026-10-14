@@ -7,6 +7,7 @@
   "result": {
     "verdict": "nonconform",
     "verdict_code": 1,
+    "reason_code": "RULE_BASED_DECISION",
     "reason": "13/35 observations above NDVI threshold 0.35 (fraction=0.37, required=0.8)",
     "valid_observations": 35,
     "vegetated_count": 13,
@@ -14,13 +15,33 @@
     "thresholds": {
       "ndvi_threshold": 0.35,
       "required_fraction": 0.8,
-      "min_observations": 5
+      "min_observations": 5,
+      "min_valid_pixel_fraction": 0.5,
+      "min_temporal_coverage": 0.5,
+      "temporal_coverage_interval_days": 10,
+      "window_start": "2024-03-01",
+      "window_end": "2024-11-01"
     }
+  },
+  "quality": {
+    "valid_count": 35,
+    "total_rows": 48,
+    "excluded_count": 13,
+    "structural_excluded_count": 13,
+    "quality_excluded_count": 0,
+    "quality_metadata_available": false,
+    "evidence_quality": "unknown",
+    "temporal_coverage": 0.92,
+    "covered_intervals": 23,
+    "total_intervals": 25,
+    "interval_length_days": 10,
+    "warnings": [
+      "valid_pixel_fraction missing; pixel-quality rule (Rule C) not applied"
+    ]
   },
   "validation_status": "experimental_only",
   "limitations": [
-    "Pixel validity fraction (valid_pixel_fraction) is not available in the current CSV.",
-    "Complete temporal coverage has not been validated.",
+    "Pixel validity fraction (valid_pixel_fraction) is not available in the current CSV; pixel-quality rule (Rule C) was not applied and evidence quality is reported as unknown.",
     "The demonstration polygon may include multiple agricultural fields.",
     "Experimental NDVI thresholds (0.35) and fraction requirements (0.80) are not agronomically validated.",
     "Manual labels have not yet been collected.",
@@ -28,7 +49,7 @@
     "NDVI alone cannot demonstrate absence of herbicides, compliance with fertilization rules, or organic certification.",
     "This provisional result must NOT authorize blockchain settlement or on-chain payments."
   ],
-  "generated_at": "2026-10-14T20:58:11Z",
+  "generated_at": "2026-10-14T21:30:32Z",
   "model_version": "rule-based-v1",
   "data_source": {
     "provider": "Copernicus Data Space",

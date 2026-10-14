@@ -25,7 +25,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from backend.ml.rules import verify_vegetation, VERDICT_CODES
+from backend.ml.rules import verify_parcel
 
 # ============================================================
 # 1. CONFIGURATION
@@ -37,6 +37,27 @@ OUTPUT_DIR = REPO_ROOT / "data/features"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 OUTPUT_JSON = OUTPUT_DIR / f"{PARCEL_ID}_provisional_result.json"
+
+# Processing configuration (Day 4) — single source of truth for thresholds.
+CONFIG_PATH = REPO_ROOT / "backend/ml/processing_config.json"
+with open(CONFIG_PATH, encoding="utf-8") as f:
+    PROCESSING_CONFIG = json.load(f)
+
+# Verification policy derived from the processing configuration.
+POLICY = {
+    "ndvi_threshold": 0.35,
+    "required_fraction": 0.80,
+    "min_observations": PROCESSING_CONFIG["min_valid_observations"],
+    "min_valid_pixel_fraction": PROCESSING_CONFIG["min_valid_pixel_fraction"],
+    "min_temporal_coverage": PROCESSING_CONFIG["temporal_coverage"][
+        "min_temporal_coverage"
+    ],
+    "temporal_coverage_interval_days": PROCESSING_CONFIG["temporal_coverage"][
+        "interval_length_days"
+    ],
+    "window_start": PROCESSING_CONFIG["time_interval"]["start"],
+    "window_end": PROCESSING_CONFIG["time_interval"]["end"],
+}
 
 # CSV candidates in priority order
 CSV_CANDIDATES = [
@@ -223,42 +244,69 @@ print("\n" + "=" * 70)
 print("VERIFICARE PROVIZORIE")
 print("=" * 70)
 
-ndvi_values = df["ndvi_mean"].tolist()
-
-result = verify_vegetation(
-    observations=ndvi_values,
-    min_observations=5,
-    ndvi_threshold=0.35,
-    required_fraction=0.80,
-)
+# Integrated pipeline (Day 4): verify_parcel applies the pixel-quality rule
+# (Rule C) and the temporal-coverage rule (Rule B) on top of the experimental
+# vegetation classification.
+result = verify_parcel(PARCEL_ID, POLICY, str(DATA_DIR))
 
 verdict = result["verdict"]
-verdict_code = VERDICT_CODES[verdict]
+verdict_code = result["verdict_code"]
+quality = result["quality"]
 
 print(f"\n  VERDICT:             {verdict.upper()}")
 print(f"  Cod verdict:         {verdict_code}")
 print(f"  Motiv:               {result['reason']}")
-print(f"  Observatii valide:   {result['valid_observations']}")
-print(f"  Nr. vegetate:        {result['vegetated_count']}")
-print(f"  Fractie vegetata:    {result['vegetated_fraction']}")
+print(f"  Cod motiv:           {result['reason_code']}")
+print(f"  Observatii valide:   {quality['valid_count']}")
+print(f"  Excluse (calitate):  {quality['quality_excluded_count']}")
+print(f"  Nr. vegetate:        {quality['vegetated_count']}")
+print(f"  Fractie vegetata:    {quality['vegetated_fraction']}")
+print(f"  Calitate dovezi:     {quality['evidence_quality']}")
+if quality["temporal_coverage"] is not None:
+    print(
+        f"  Acoperire temporala: {quality['temporal_coverage']} "
+        f"({quality['covered_intervals']}/{quality['total_intervals']} intervale "
+        f"de {quality['interval_length_days']} zile)"
+    )
+for warning in quality["warnings"]:
+    print(f"  ATENTIE: {warning}")
 
 
 # ============================================================
 # 12. BUILD OBSERVATIONS LIST FOR JSON
 # ============================================================
 
-observations_list = []
-for _, row in df.iterrows():
-    obs = {
-        "acquired_at": row["date"].strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "ndvi_mean": round(float(row["ndvi_mean"]), 6),
-    }
-    observations_list.append(obs)
+# The integrated verifier already returns the normalised observation list,
+# including per-observation quality fields where available.
+observations_list = result["observations"]
 
 
 # ============================================================
 # 13. SAVE JSON RESULT
 # ============================================================
+
+# Report limitations truthfully, depending on what quality metadata exists.
+limitations = [
+    "The demonstration polygon may include multiple agricultural fields.",
+    "Experimental NDVI thresholds (0.35) and fraction requirements (0.80) are not agronomically validated.",
+    "Manual labels have not yet been collected.",
+    "LightGBM has not been trained.",
+    "NDVI alone cannot demonstrate absence of herbicides, compliance with fertilization rules, or organic certification.",
+    "This provisional result must NOT authorize blockchain settlement or on-chain payments.",
+]
+if not quality["quality_metadata_available"]:
+    limitations.insert(
+        0,
+        "Pixel validity fraction (valid_pixel_fraction) is not available in the "
+        "current CSV; pixel-quality rule (Rule C) was not applied and evidence "
+        "quality is reported as unknown.",
+    )
+if quality["temporal_coverage"] is None:
+    limitations.insert(
+        0,
+        "No temporal-coverage window was provided; temporal-coverage rule "
+        "(Rule B) was not applied.",
+    )
 
 output_data = {
     "parcel_id": PARCEL_ID,
@@ -269,23 +317,29 @@ output_data = {
     "result": {
         "verdict": result["verdict"],
         "verdict_code": verdict_code,
+        "reason_code": result["reason_code"],
         "reason": result["reason"],
-        "valid_observations": result["valid_observations"],
-        "vegetated_count": result["vegetated_count"],
-        "vegetated_fraction": result["vegetated_fraction"],
-        "thresholds": result["thresholds"],
+        "valid_observations": quality["valid_count"],
+        "vegetated_count": quality["vegetated_count"],
+        "vegetated_fraction": quality["vegetated_fraction"],
+        "thresholds": result["model"]["thresholds"],
+    },
+    "quality": {
+        "valid_count": quality["valid_count"],
+        "total_rows": quality["total_rows"],
+        "excluded_count": quality["excluded_count"],
+        "structural_excluded_count": quality["structural_excluded_count"],
+        "quality_excluded_count": quality["quality_excluded_count"],
+        "quality_metadata_available": quality["quality_metadata_available"],
+        "evidence_quality": quality["evidence_quality"],
+        "temporal_coverage": quality["temporal_coverage"],
+        "covered_intervals": quality["covered_intervals"],
+        "total_intervals": quality["total_intervals"],
+        "interval_length_days": quality["interval_length_days"],
+        "warnings": quality["warnings"],
     },
     "validation_status": "experimental_only",
-    "limitations": [
-        "Pixel validity fraction (valid_pixel_fraction) is not available in the current CSV.",
-        "Complete temporal coverage has not been validated.",
-        "The demonstration polygon may include multiple agricultural fields.",
-        "Experimental NDVI thresholds (0.35) and fraction requirements (0.80) are not agronomically validated.",
-        "Manual labels have not yet been collected.",
-        "LightGBM has not been trained.",
-        "NDVI alone cannot demonstrate absence of herbicides, compliance with fertilization rules, or organic certification.",
-        "This provisional result must NOT authorize blockchain settlement or on-chain payments.",
-    ],
+    "limitations": limitations,
     "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "model_version": "rule-based-v1",
     "data_source": {
