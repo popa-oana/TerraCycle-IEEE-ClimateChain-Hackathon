@@ -1,0 +1,44 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "parcel_01",
+        "source": "manual_digitization",
+        "description": "Parcela demonstrativa TerraCycle Proof"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              23.506627,
+              43.948277
+            ],
+            [
+              23.519075,
+              43.949760
+            ],
+            [
+              23.538736,
+              43.954518
+            ],
+            [
+              23.541827,
+              43.935917
+            ],
+            [
+              23.512207,
+              43.933691
+            ],
+            [
+              23.506627,
+              43.948277
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

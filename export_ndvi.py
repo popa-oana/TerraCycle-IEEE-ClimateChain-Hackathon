@@ -55,7 +55,7 @@ print("Autentificare reusita!")
 # ─── 4. Perioadă temporală ─────────────────────────────────────────
 # Începem cu o lună de test (iunie 2024).
 # După validare, se poate extinde la ["2024-03-01", "2024-11-01"]
-TEMPORAL_EXTENT = ["2024-06-01", "2024-07-01"]
+TEMPORAL_EXTENT = ["2024-03-01", "2024-11-01"]
 print(f"Perioada: {TEMPORAL_EXTENT[0]} - {TEMPORAL_EXTENT[1]}")
 
 # ─── 5. Încărcăm colecția Sentinel-2 L2A ──────────────────────────
@@ -91,13 +91,13 @@ timeseries = ndvi_masked.aggregate_spatial(
 )
 
 # ─── 10. Lansăm batch job ─────────────────────────────────────────
-output_path = output_dir / "parcel_01_june_2024.csv"
+output_path = output_dir / "parcel_01_2024.csv"
 print(f"\nLansare batch job: TerraCycle NDVI June 2024 Parcel 01")
 print("Asteptati cateva minute...\n")
 
 job = timeseries.execute_batch(
     out_format="CSV",
-    title="TerraCycle NDVI June 2024 Parcel 01",
+   title="TerraCycle NDVI 2024 Parcel 01",
 )
 
 # ─── 11. Descărcăm rezultatul ─────────────────────────────────────
