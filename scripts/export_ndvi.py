@@ -1,4 +1,4 @@
-"""
+r"""
 export_ndvi.py — Extrage seria temporală NDVI din Sentinel-2 via openEO
 
 Fluxul:
@@ -14,8 +14,8 @@ Fluxul:
 Bazat pe notebook-ul oficial Copernicus:
   https://documentation.dataspace.copernicus.eu/notebook-samples/openeo/NDVI_Timeseries.html
 
-Rulare:
-    .\.venv\Scripts\python.exe export_ndvi.py
+Rulare (din radacina repo-ului):
+    .\.venv\Scripts\python.exe scripts\export_ndvi.py
 
 Notă: Jobul poate dura câteva minute. Mesajele "Job running"
 sunt normale.
@@ -27,15 +27,19 @@ from pathlib import Path
 
 import openeo
 
+# Ancoram caile la radacina repo-ului, ca scriptul sa functioneze
+# indiferent de directorul din care este rulat.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 # ─── 1. Pregătim directoarele ───────────────────────────────────────
-output_dir = Path("data/ndvi")
+output_dir = REPO_ROOT / "data/ndvi"
 output_dir.mkdir(parents=True, exist_ok=True)
 
 # ─── 2. Citim parcela ──────────────────────────────────────────────
-parcel_path = Path("data/parcels/parcel_01.geojson")
+parcel_path = REPO_ROOT / "data/parcels/parcel_01.geojson"
 if not parcel_path.exists():
     print("EROARE: Nu exista data/parcels/parcel_01.geojson")
-    print("Ruleaza mai intai check_parcel.py dupa ce creezi fisierul.")
+    print("Ruleaza mai intai scripts/check_parcel.py dupa ce creezi fisierul.")
     sys.exit(1)
 
 with open(parcel_path, encoding="utf-8") as file:
@@ -103,4 +107,4 @@ job = timeseries.execute_batch(
 # ─── 11. Descărcăm rezultatul ─────────────────────────────────────
 job.get_results().download_file(str(output_path))
 print(f"\nExport reusit: {output_path}")
-print("Ruleaza inspect_ndvi.py pentru a verifica datele.")
+print("Ruleaza scripts/inspect_ndvi.py pentru a verifica datele.")
