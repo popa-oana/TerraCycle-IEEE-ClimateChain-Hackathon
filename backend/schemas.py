@@ -63,5 +63,44 @@ class ConfigResponse(BaseModel):
     app_url: str | None = None
 
 
+class ObservationsSummary(BaseModel):
+    total_observations: int
+    valid_observations: int
+    vegetated_count: int
+    vegetated_fraction: float
+
+
+class DataProvenance(BaseModel):
+    provider: str
+    dataset: str
+    bands: list[str]
+    method: str
+
+
+class TxHashes(BaseModel):
+    register: str | None = None
+    fund: str | None = None
+    settle: str | None = None
+    refund: str | None = None
+
+
+class PassportResponse(BaseModel):
+    commitment_id: str
+    parcel_display_name: str
+    region: str
+    season_id: str
+    practice_type: str
+    plan_hash: str
+    evidence_hash: str | None = None
+    verdict: str | None = None
+    contract_state: str | None = None
+    contract_address: str | None = None
+    chain_id: int | None = None
+    observations_summary: ObservationsSummary | None = None
+    data_provenance: DataProvenance | None = None
+    tx_hashes: TxHashes | None = None
+    limitations: list[str] = []
+
+
 class ErrorResponse(BaseModel):
     error: dict[str, str]
