@@ -1,0 +1,64 @@
+{
+  "schema_version": "evidence-v1",
+  "commitment_id": "0x8979bf59bbcd3c6b2ff84ee6c2306d649d2cb37a4e0c4ceeb06b72ca1387d834",
+  "plan_hash": "0x7a3e21820b1b9e2cb92a34493de3df34177c38c82649b1a133b3a677114b010f",
+  "parcel_id": "parcel_01",
+  "season_id": "season-2024",
+  "policy": {
+    "policy_version": "cover-v1",
+    "type": "vegetation_cover",
+    "window_start": "2024-03-01T00:00:00Z",
+    "window_end": "2024-11-01T00:00:00Z",
+    "minimum_observations": 5,
+    "minimum_valid_pixel_percent": 50,
+    "minimum_temporal_coverage_percent": 50,
+    "minimum_positive_percent": 80
+  },
+  "observations": [
+    {
+      "acquired_at": "2024-03-03T00:00:00Z",
+      "scene_id": "S2A_MSIL2A_20240303_PROVISIONAL",
+      "ndvi_milli": 444,
+      "valid_pixel_percent": 90,
+      "is_valid": true,
+      "vegetation_class": 1
+    },
+    {
+      "acquired_at": "2024-03-23T00:00:00Z",
+      "scene_id": "S2A_MSIL2A_20240323_PROVISIONAL",
+      "ndvi_milli": 854,
+      "valid_pixel_percent": 95,
+      "is_valid": true,
+      "vegetation_class": 1
+    },
+    {
+      "acquired_at": "2024-06-11T00:00:00Z",
+      "scene_id": "S2A_MSIL2A_20240611_PROVISIONAL",
+      "ndvi_milli": 227,
+      "valid_pixel_percent": 92,
+      "is_valid": true,
+      "vegetation_class": 0
+    }
+  ],
+  "quality": {
+    "total_rows": 48,
+    "valid_count": 35,
+    "excluded_count": 13,
+    "temporal_coverage_percent": 92,
+    "covered_intervals": 23,
+    "total_intervals": 25,
+    "inconclusive_reason": null
+  },
+  "dataset": {
+    "provider": "Copernicus Data Space",
+    "dataset": "Sentinel-2 L2A",
+    "source_file": "data/ndvi/parcel_01_2024.csv",
+    "method": "cloud-masked NDVI mean (SCL 4,5 retained)"
+  },
+  "model": {
+    "model_version": "rule-based-v1",
+    "source": "RULE_BASED"
+  },
+  "verdict": "nonconform",
+  "verdict_code": 1
+}
