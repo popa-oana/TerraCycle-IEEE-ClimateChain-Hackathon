@@ -32,6 +32,7 @@ class PlanResponse(BaseModel):
     parcel_id: str
     season_id: str
     rotations: list[RotationOption]
+    climate_source: str = "fixture"
 
 
 class PrepareRequest(BaseModel):
