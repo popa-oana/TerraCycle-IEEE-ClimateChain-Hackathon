@@ -1,0 +1,47 @@
+{
+  "description": "Day 5D four-parcel comparison report",
+  "total_raw_observations": 339,
+  "total_quality_approved": 214,
+  "parcels": [
+    {
+      "parcel_id": "parcel_01",
+      "raw_observations": 48,
+      "quality_approved": 29,
+      "excluded": 19,
+      "ndvi_mean": 0.394553,
+      "ndvi_trend": -0.003755,
+      "mean_valid_pixel_fraction": 0.966834,
+      "evidence_sufficiency": "sufficient"
+    },
+    {
+      "parcel_id": "parcel_02",
+      "raw_observations": 97,
+      "quality_approved": 63,
+      "excluded": 34,
+      "ndvi_mean": 0.409175,
+      "ndvi_trend": -0.001297,
+      "mean_valid_pixel_fraction": 0.959849,
+      "evidence_sufficiency": "sufficient"
+    },
+    {
+      "parcel_id": "parcel_03",
+      "raw_observations": 97,
+      "quality_approved": 62,
+      "excluded": 35,
+      "ndvi_mean": 0.412453,
+      "ndvi_trend": -0.001881,
+      "mean_valid_pixel_fraction": 0.982866,
+      "evidence_sufficiency": "sufficient"
+    },
+    {
+      "parcel_id": "parcel_04",
+      "raw_observations": 97,
+      "quality_approved": 60,
+      "excluded": 37,
+      "ndvi_mean": 0.392128,
+      "ndvi_trend": -0.003261,
+      "mean_valid_pixel_fraction": 0.99079,
+      "evidence_sufficiency": "sufficient"
+    }
+  ]
+}

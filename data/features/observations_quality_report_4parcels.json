@@ -1,0 +1,140 @@
+{
+  "accepted_date_range": {
+    "end": "2024-10-29T00:00:00Z",
+    "start": "2024-03-03T00:00:00Z"
+  },
+  "accepted_observation_count": 214,
+  "blocker": null,
+  "dataset_columns": [
+    "parcel_id",
+    "acquired_at",
+    "scene_id",
+    "ndvi_mean",
+    "valid_pixel_fraction"
+  ],
+  "dataset_csv": "data/features/observations_clean_4parcels.csv",
+  "dataset_logical_types": {
+    "acquired_at": "string (UTC ISO-8601, YYYY-MM-DDTHH:MM:SSZ)",
+    "ndvi_mean": "float in [-1, 1]",
+    "parcel_id": "string",
+    "scene_id": "string or null (never fabricated)",
+    "valid_pixel_fraction": "float in [0, 1]"
+  },
+  "dataset_sha256": "def2bd1096292f04f7b0f7b06d9035277606bf137cd59d87d60c6324f95b21df",
+  "excluded_by_stage": {
+    "duplicate_parcel_timestamp": 0,
+    "missing_or_out_of_range_ndvi": 99,
+    "missing_or_unparseable_timestamp": 0,
+    "pixel_quality": 26
+  },
+  "excluded_observation_count": 125,
+  "ignored_files": [],
+  "input_directory": "data/ndvi",
+  "min_valid_pixel_fraction": 0.5,
+  "missing_quality_information_count": 0,
+  "notes": [
+    "Observations are parcel-level aggregates from Sentinel-2 L2A (B04/B08 NDVI, SCL classes 4-5 as valid).",
+    "Raw Copernicus/openEO exports are read-only inputs and are never modified by this script.",
+    "No interpolation, imputation or synthetic observation is added.",
+    "The provisional parcel polygon is manual digitisation and may contain more than one agricultural field; the dataset cannot separate fields inside it.",
+    "No labels are included; this dataset is not sufficient to train a supervised model on its own."
+  ],
+  "observations_per_parcel": {
+    "parcel_01": {
+      "accepted_observations": 29,
+      "excluded_observations": 19,
+      "original_observations": 48,
+      "source_file": "data/ndvi/parcel_01_2024_quality.csv"
+    },
+    "parcel_02": {
+      "accepted_observations": 63,
+      "excluded_observations": 34,
+      "original_observations": 97,
+      "source_file": "data/ndvi/parcel_02_2024_quality.csv"
+    },
+    "parcel_03": {
+      "accepted_observations": 62,
+      "excluded_observations": 35,
+      "original_observations": 97,
+      "source_file": "data/ndvi/parcel_03_2024_quality.csv"
+    },
+    "parcel_04": {
+      "accepted_observations": 60,
+      "excluded_observations": 37,
+      "original_observations": 97,
+      "source_file": "data/ndvi/parcel_04_2024_quality.csv"
+    }
+  },
+  "original_observation_count": 339,
+  "quality_exclusion_categories": {
+    "below_min_valid_pixel_fraction": 26,
+    "invalid_valid_pixel_fraction": 0,
+    "missing_quality_metadata": 0
+  },
+  "quality_exclusion_reasons": {
+    "valid_pixel_fraction=0.0065 < 0.50": 1,
+    "valid_pixel_fraction=0.0114 < 0.50": 1,
+    "valid_pixel_fraction=0.0137 < 0.50": 1,
+    "valid_pixel_fraction=0.0217 < 0.50": 1,
+    "valid_pixel_fraction=0.0249 < 0.50": 1,
+    "valid_pixel_fraction=0.0365 < 0.50": 1,
+    "valid_pixel_fraction=0.0534 < 0.50": 1,
+    "valid_pixel_fraction=0.0558 < 0.50": 1,
+    "valid_pixel_fraction=0.0641 < 0.50": 1,
+    "valid_pixel_fraction=0.0956 < 0.50": 1,
+    "valid_pixel_fraction=0.1170 < 0.50": 1,
+    "valid_pixel_fraction=0.1495 < 0.50": 1,
+    "valid_pixel_fraction=0.1729 < 0.50": 1,
+    "valid_pixel_fraction=0.1785 < 0.50": 1,
+    "valid_pixel_fraction=0.2100 < 0.50": 1,
+    "valid_pixel_fraction=0.2718 < 0.50": 1,
+    "valid_pixel_fraction=0.3004 < 0.50": 1,
+    "valid_pixel_fraction=0.3041 < 0.50": 1,
+    "valid_pixel_fraction=0.3229 < 0.50": 1,
+    "valid_pixel_fraction=0.3665 < 0.50": 1,
+    "valid_pixel_fraction=0.3701 < 0.50": 1,
+    "valid_pixel_fraction=0.3828 < 0.50": 1,
+    "valid_pixel_fraction=0.3968 < 0.50": 1,
+    "valid_pixel_fraction=0.4011 < 0.50": 1,
+    "valid_pixel_fraction=0.4074 < 0.50": 1,
+    "valid_pixel_fraction=0.4243 < 0.50": 1
+  },
+  "schema_version": "ml-observations-v1",
+  "source_date_range": {
+    "end": "2024-10-29T00:00:00Z",
+    "start": "2024-03-01T00:00:00Z"
+  },
+  "source_files_skipped": [
+    {
+      "file": "data/ndvi/parcel_01_june_2024_quality.csv",
+      "parcel_id": "parcel_01",
+      "reason": "alternate source for the same parcel; not merged (preferred: parcel_01_2024_quality.csv)"
+    },
+    {
+      "file": "data/ndvi/parcel_01_2024.csv",
+      "parcel_id": "parcel_01",
+      "reason": "alternate source for the same parcel; not merged (preferred: parcel_01_2024_quality.csv)"
+    },
+    {
+      "file": "data/ndvi/parcel_01_june_2024.csv",
+      "parcel_id": "parcel_01",
+      "reason": "alternate source for the same parcel; not merged (preferred: parcel_01_2024_quality.csv)"
+    },
+    {
+      "file": "data/ndvi/parcel_01_clean.csv",
+      "parcel_id": "parcel_01",
+      "reason": "alternate source for the same parcel; not merged (preferred: parcel_01_2024_quality.csv)"
+    }
+  ],
+  "source_files_used": {
+    "parcel_01": "data/ndvi/parcel_01_2024_quality.csv",
+    "parcel_02": "data/ndvi/parcel_02_2024_quality.csv",
+    "parcel_03": "data/ndvi/parcel_03_2024_quality.csv",
+    "parcel_04": "data/ndvi/parcel_04_2024_quality.csv"
+  },
+  "source_parcel_count": 4,
+  "suitable_for_feature_engineering": true,
+  "unique_parcel_count": 4,
+  "unique_timestamp_count": 70,
+  "warnings": []
+}
