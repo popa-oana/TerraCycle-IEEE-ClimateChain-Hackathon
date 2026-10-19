@@ -1,4 +1,110 @@
+import { useEffect, useState } from 'react';
+import { getParcels, ApiError } from '../lib/api';
+import type { Parcel } from '../lib/types';
+
+type LoadState = 'loading' | 'success' | 'empty' | 'error';
+
+interface ParcelsState {
+  status: LoadState;
+  parcels: Parcel[];
+  errorMessage: string | null;
+  errorCode: string | null;
+  configError: boolean;
+  networkError: boolean;
+}
+
 function ParcelsPage() {
+  const [state, setState] = useState<ParcelsState>({
+    status: 'loading',
+    parcels: [],
+    errorMessage: null,
+    errorCode: null,
+    configError: false,
+    networkError: false,
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    let ignore = false;
+
+    const load = async () => {
+      if (ignore) {
+        return;
+      }
+      setState({
+        status: 'loading',
+        parcels: [],
+        errorMessage: null,
+        errorCode: null,
+        configError: false,
+        networkError: false,
+      });
+
+      try {
+        const response = await getParcels();
+        if (!isMounted) {
+          return;
+        }
+
+        const parcels = response.parcels;
+        if (parcels.length === 0) {
+          setState({
+            status: 'empty',
+            parcels: [],
+            errorMessage: null,
+            errorCode: null,
+            configError: false,
+            networkError: false,
+          });
+          return;
+        }
+
+        setState({
+          status: 'success',
+          parcels,
+          errorMessage: null,
+          errorCode: null,
+          configError: false,
+          networkError: false,
+        });
+      } catch (error: unknown) {
+        if (!isMounted) {
+          return;
+        }
+
+        if (error instanceof ApiError) {
+          const isConfig = error.code === 'CONFIG_ERROR';
+          const isNetwork = error.code === 'NETWORK_ERROR';
+          setState({
+            status: 'error',
+            parcels: [],
+            errorMessage: error.message,
+            errorCode: error.code,
+            configError: isConfig,
+            networkError: isNetwork,
+          });
+          return;
+        }
+
+        setState({
+          status: 'error',
+          parcels: [],
+          errorMessage: 'An unexpected error occurred while loading parcels.',
+          errorCode: 'UNKNOWN_ERROR',
+          configError: false,
+          networkError: false,
+        });
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+      ignore = true;
+    };
+  }, []);
+
   return (
     <section
       aria-labelledby="parcels-page-heading"
@@ -33,22 +139,112 @@ function ParcelsPage() {
             Field selection
           </h2>
           <p className="text-[12px] font-medium tracking-[0.14em] text-[var(--muted)]">
-            NO DATASET CONNECTED
+            {state.status === 'loading' && 'LOADING PARCELS'}
+            {state.status === 'success' && 'PARCELS LOADED'}
+            {state.status === 'empty' && 'NO PARCELS RETURNED'}
+            {state.status === 'error' && 'PARCEL DATA UNAVAILABLE'}
           </p>
         </div>
 
-        <div className="mt-6 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--white)] px-5 py-8 md:px-8 md:py-10">
-          <p className="text-[12px] font-medium tracking-[0.16em] text-[var(--red-700)]">
-            PARCEL DATA PENDING
+        <div className="mt-6">
+          <p className="mb-6 text-[12px] font-medium tracking-[0.12em] text-[var(--red-700)]">
+            Demo fixture — not satellite-verified.
           </p>
-          <p className="mt-3 max-w-[52ch] text-[17px] leading-[1.4] font-semibold text-[var(--ink)] md:text-[18px]">
-            The field list is not available in this prototype yet.
-          </p>
-          <p className="mt-3 max-w-[60ch] text-[15px] leading-[1.6] text-[var(--muted)]">
-            Parcel records have not been connected to this page. No fields are shown,
-            and none have been invented for demonstration. Selection will be enabled
-            once the shared parcel dataset is available.
-          </p>
+
+          {state.status === 'loading' && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--white)] px-5 py-8 md:px-8 md:py-10"
+            >
+              <p className="text-[17px] leading-[1.4] font-semibold text-[var(--ink)] md:text-[18px]">
+                Loading parcels from the API.
+              </p>
+              <p className="mt-3 max-w-[60ch] text-[15px] leading-[1.6] text-[var(--muted)]">
+                Retrieving available fields. This may take a moment.
+              </p>
+            </div>
+          )}
+
+          {state.status === 'error' && (
+            <div
+              role="alert"
+              className="rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--white)] px-5 py-8 md:px-8 md:py-10"
+            >
+              <p className="text-[12px] font-medium tracking-[0.16em] text-[var(--red-700)]">
+                {state.configError
+                  ? 'API CONFIGURATION ERROR'
+                  : state.networkError
+                    ? 'BACKEND UNAVAILABLE'
+                    : 'PARCEL DATA ERROR'}
+              </p>
+              <p className="mt-3 max-w-[52ch] text-[17px] leading-[1.4] font-semibold text-[var(--ink)] md:text-[18px]">
+                {state.configError
+                  ? 'API base URL is not configured.'
+                  : state.networkError
+                    ? 'The backend could not be reached.'
+                    : 'The parcel list could not be loaded.'}
+              </p>
+              <p className="mt-3 max-w-[60ch] text-[15px] leading-[1.6] text-[var(--muted)]">
+                {state.errorMessage ??
+                  'An unexpected error occurred while retrieving parcel records. No fields were shown and none were invented.'}
+              </p>
+              {!state.configError && (
+                <p className="mt-3 max-w-[60ch] text-[14px] leading-[1.6] text-[var(--muted)]">
+                  Ensure the backend is running and that CORS allows this origin.
+                </p>
+              )}
+            </div>
+          )}
+
+          {state.status === 'empty' && (
+            <div className="rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--white)] px-5 py-8 md:px-8 md:py-10">
+              <p className="text-[12px] font-medium tracking-[0.16em] text-[var(--red-700)]">
+                NO PARCELS RETURNED
+              </p>
+              <p className="mt-3 max-w-[52ch] text-[17px] leading-[1.4] font-semibold text-[var(--ink)] md:text-[18px]">
+                The API returned an empty parcel list.
+              </p>
+              <p className="mt-3 max-w-[60ch] text-[15px] leading-[1.6] text-[var(--muted)]">
+                No parcel records are currently available. No fields are shown, and none
+                have been invented for demonstration.
+              </p>
+            </div>
+          )}
+
+          {state.status === 'success' && (
+            <ul
+              className="flex flex-col gap-6 md:gap-8"
+              aria-label="Available parcels"
+            >
+              {state.parcels.map((parcel) => (
+                <li
+                  key={parcel.parcel_id}
+                  className="flex flex-col gap-4 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--white)] px-5 py-6 md:px-8 md:py-8"
+                >
+                  <div className="flex flex-col gap-2 md:flex-row md:items-baseline md:justify-between">
+                    <h3 className="text-[18px] leading-[1.25] font-semibold text-[var(--navy-950)] md:text-[20px]">
+                      {parcel.display_name}
+                    </h3>
+                    <p className="text-[12px] font-medium tracking-[0.14em] text-[var(--muted)]">
+                      {parcel.parcel_id}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-x-8 gap-y-2 sm:flex-row sm:items-baseline">
+                    <p className="text-[15px] leading-[1.6] text-[var(--ink)] md:text-[16px]">
+                      <span className="text-[var(--muted)]">Region:</span>{' '}
+                      {parcel.region}
+                    </p>
+                    <p className="text-[15px] leading-[1.6] text-[var(--ink)] md:text-[16px]">
+                      <span className="text-[var(--muted)]">Area:</span>{' '}
+                      {parcel.area_ha.toLocaleString('en-US')} ha
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
     </section>
