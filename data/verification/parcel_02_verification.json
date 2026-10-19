@@ -1,0 +1,480 @@
+{
+  "parcel_id": "parcel_02",
+  "generated_at": "2026-10-19T18:25:14Z",
+  "validation_status": "experimental_only",
+  "disclaimer": "This is an experimental NDVI-based vegetation assessment. It is NOT organic certification, NOT a compliance verdict, and does NOT authorize blockchain settlement.",
+  "result": {
+    "verdict": "nonconform",
+    "verdict_code": 1,
+    "reason_code": "RULE_BASED_DECISION",
+    "reason": "30/63 observations above NDVI threshold 0.35 (fraction=0.48, required=0.8)",
+    "observations": [
+      {
+        "acquired_at": "2024-03-03T00:00:00Z",
+        "ndvi_mean": 0.13148,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 0.847
+      },
+      {
+        "acquired_at": "2024-03-13T00:00:00Z",
+        "ndvi_mean": 0.259596,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 0.5269
+      },
+      {
+        "acquired_at": "2024-03-21T00:00:00Z",
+        "ndvi_mean": 0.373269,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-03-23T00:00:00Z",
+        "ndvi_mean": 0.310444,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-03-28T00:00:00Z",
+        "ndvi_mean": 0.376502,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 0.6192
+      },
+      {
+        "acquired_at": "2024-04-02T00:00:00Z",
+        "ndvi_mean": 0.326292,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-04-05T00:00:00Z",
+        "ndvi_mean": 0.318476,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-04-07T00:00:00Z",
+        "ndvi_mean": 0.339341,
+        "is_valid_observation": false,
+        "valid_pixel_fraction": 0.4074,
+        "quality_reason": "valid_pixel_fraction=0.4074 < 0.50"
+      },
+      {
+        "acquired_at": "2024-04-10T00:00:00Z",
+        "ndvi_mean": 0.325689,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-04-12T00:00:00Z",
+        "ndvi_mean": 0.303974,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-04-20T00:00:00Z",
+        "ndvi_mean": 0.359105,
+        "is_valid_observation": false,
+        "valid_pixel_fraction": 0.3665,
+        "quality_reason": "valid_pixel_fraction=0.3665 < 0.50"
+      },
+      {
+        "acquired_at": "2024-04-22T00:00:00Z",
+        "ndvi_mean": 0.371578,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 0.7931
+      },
+      {
+        "acquired_at": "2024-05-02T00:00:00Z",
+        "ndvi_mean": 0.345479,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-05-05T00:00:00Z",
+        "ndvi_mean": 0.38338,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-05-07T00:00:00Z",
+        "ndvi_mean": 0.389229,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-05-10T00:00:00Z",
+        "ndvi_mean": 0.432549,
+        "is_valid_observation": false,
+        "valid_pixel_fraction": 0.3828,
+        "quality_reason": "valid_pixel_fraction=0.3828 < 0.50"
+      },
+      {
+        "acquired_at": "2024-05-12T00:00:00Z",
+        "ndvi_mean": 0.432417,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-05-22T00:00:00Z",
+        "ndvi_mean": 0.495301,
+        "is_valid_observation": false,
+        "valid_pixel_fraction": 0.3004,
+        "quality_reason": "valid_pixel_fraction=0.3004 < 0.50"
+      },
+      {
+        "acquired_at": "2024-05-25T00:00:00Z",
+        "ndvi_mean": 0.613836,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-05-27T00:00:00Z",
+        "ndvi_mean": 0.624844,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-05-30T00:00:00Z",
+        "ndvi_mean": 0.689613,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-01T00:00:00Z",
+        "ndvi_mean": 0.734641,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-04T00:00:00Z",
+        "ndvi_mean": 0.799246,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 0.5346
+      },
+      {
+        "acquired_at": "2024-06-06T00:00:00Z",
+        "ndvi_mean": 0.790207,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-09T00:00:00Z",
+        "ndvi_mean": 0.616327,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 0.6267
+      },
+      {
+        "acquired_at": "2024-06-11T00:00:00Z",
+        "ndvi_mean": 0.749625,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-14T00:00:00Z",
+        "ndvi_mean": 0.822542,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-16T00:00:00Z",
+        "ndvi_mean": 0.770045,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-19T00:00:00Z",
+        "ndvi_mean": 0.784502,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-21T00:00:00Z",
+        "ndvi_mean": 0.728191,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-24T00:00:00Z",
+        "ndvi_mean": 0.724537,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-26T00:00:00Z",
+        "ndvi_mean": 0.674724,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-06-29T00:00:00Z",
+        "ndvi_mean": 0.762641,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-01T00:00:00Z",
+        "ndvi_mean": 0.701257,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-06T00:00:00Z",
+        "ndvi_mean": 0.732681,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-09T00:00:00Z",
+        "ndvi_mean": 0.663016,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-11T00:00:00Z",
+        "ndvi_mean": 0.591727,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-14T00:00:00Z",
+        "ndvi_mean": 0.517003,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-16T00:00:00Z",
+        "ndvi_mean": 0.446496,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-19T00:00:00Z",
+        "ndvi_mean": 0.370803,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-24T00:00:00Z",
+        "ndvi_mean": 0.368917,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-26T00:00:00Z",
+        "ndvi_mean": 0.358594,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-29T00:00:00Z",
+        "ndvi_mean": 0.320971,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-07-31T00:00:00Z",
+        "ndvi_mean": 0.305293,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-08-03T00:00:00Z",
+        "ndvi_mean": 0.141996,
+        "is_valid_observation": false,
+        "valid_pixel_fraction": 0.0217,
+        "quality_reason": "valid_pixel_fraction=0.0217 < 0.50"
+      },
+      {
+        "acquired_at": "2024-08-05T00:00:00Z",
+        "ndvi_mean": 0.253501,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 0.9897
+      },
+      {
+        "acquired_at": "2024-08-08T00:00:00Z",
+        "ndvi_mean": 0.265339,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-08-10T00:00:00Z",
+        "ndvi_mean": 0.25209,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-08-13T00:00:00Z",
+        "ndvi_mean": 0.236609,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-08-18T00:00:00Z",
+        "ndvi_mean": 0.21843,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-08-23T00:00:00Z",
+        "ndvi_mean": 0.199068,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-08-25T00:00:00Z",
+        "ndvi_mean": 0.196773,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-09-02T00:00:00Z",
+        "ndvi_mean": 0.190542,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-09-04T00:00:00Z",
+        "ndvi_mean": 0.197857,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-09-07T00:00:00Z",
+        "ndvi_mean": 0.148231,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 0.5391
+      },
+      {
+        "acquired_at": "2024-09-12T00:00:00Z",
+        "ndvi_mean": 0.186164,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-09-14T00:00:00Z",
+        "ndvi_mean": 0.188079,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-09-17T00:00:00Z",
+        "ndvi_mean": 0.193211,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-09-19T00:00:00Z",
+        "ndvi_mean": 0.150445,
+        "is_valid_observation": false,
+        "valid_pixel_fraction": 0.0114,
+        "quality_reason": "valid_pixel_fraction=0.0114 < 0.50"
+      },
+      {
+        "acquired_at": "2024-09-22T00:00:00Z",
+        "ndvi_mean": 0.217461,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 0.9942
+      },
+      {
+        "acquired_at": "2024-09-24T00:00:00Z",
+        "ndvi_mean": 0.186244,
+        "is_valid_observation": false,
+        "valid_pixel_fraction": 0.117,
+        "quality_reason": "valid_pixel_fraction=0.1170 < 0.50"
+      },
+      {
+        "acquired_at": "2024-09-27T00:00:00Z",
+        "ndvi_mean": 0.20344,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-10-02T00:00:00Z",
+        "ndvi_mean": 0.215121,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-10-07T00:00:00Z",
+        "ndvi_mean": 0.217361,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-10-12T00:00:00Z",
+        "ndvi_mean": 0.22205,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-10-14T00:00:00Z",
+        "ndvi_mean": 0.222846,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-10-19T00:00:00Z",
+        "ndvi_mean": 0.243459,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-10-22T00:00:00Z",
+        "ndvi_mean": 0.223152,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-10-24T00:00:00Z",
+        "ndvi_mean": 0.189188,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      },
+      {
+        "acquired_at": "2024-10-29T00:00:00Z",
+        "ndvi_mean": 0.187954,
+        "is_valid_observation": true,
+        "valid_pixel_fraction": 1.0
+      }
+    ],
+    "quality": {
+      "valid_count": 63,
+      "total_rows": 97,
+      "excluded_count": 34,
+      "structural_excluded_count": 27,
+      "quality_excluded_count": 7,
+      "vegetated_count": 30,
+      "vegetated_fraction": 0.4762,
+      "quality_metadata_available": true,
+      "evidence_quality": "assessed",
+      "min_valid_pixel_fraction": 0.5,
+      "temporal_coverage": 1.0,
+      "covered_intervals": 25,
+      "total_intervals": 25,
+      "interval_length_days": 10,
+      "inconclusive_reason": null,
+      "warnings": []
+    },
+    "model": {
+      "model_version": "rule-based-v1",
+      "features_version": null,
+      "source": "RULE_BASED",
+      "thresholds": {
+        "ndvi_threshold": 0.35,
+        "required_fraction": 0.8,
+        "min_observations": 5,
+        "min_valid_pixel_fraction": 0.5,
+        "min_temporal_coverage": 0.5,
+        "temporal_coverage_interval_days": 10,
+        "window_start": "2024-03-01",
+        "window_end": "2024-11-01"
+      }
+    },
+    "source": {
+      "provider": "Copernicus Data Space",
+      "dataset": "Sentinel-2 L2A",
+      "method": "cloud-masked NDVI (SCL classes 4,5)",
+      "csv_file": "C:\\Users\\Crenguta Ciobanica\\Desktop\\TerraCycle\\TerraCycle-IEEE-ClimateChain-Hackathon\\data\\ndvi\\parcel_02_2024_quality.csv"
+    }
+  }
+}

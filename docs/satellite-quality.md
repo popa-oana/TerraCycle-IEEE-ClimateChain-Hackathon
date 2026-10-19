@@ -188,8 +188,34 @@ All commands run from the repository root.
 # Task 3A pixel-coverage + processing-graph suite
 .\.venv\Scripts\python.exe -m pytest tests/test_pixel_coverage.py -v
 
-# Everything
-.\.venv\Scripts\python.exe -m pytest tests/ -q
+# Day 5A/5B dataset + feature-engineering suites
+.\.venv\Scripts\python.exe -m pytest tests/test_prepare_ml_dataset.py tests/test_features.py -q
+
+# Everything (the hashing suite needs an unrelated optional dependency)
+.\.venv\Scripts\python.exe -m pytest tests/ -q --ignore=tests/test_hashing.py
+```
+
+### Build the ML-ready observation dataset (Day 5A)
+```powershell
+# Standardise + quality-filter the real exports into the ML-ready schema.
+# Raw files in data/ndvi are opened read-only and never modified.
+.\.venv\Scripts\python.exe scripts\prepare_ml_dataset.py
+
+# Outputs:
+#   data/features/observations_clean.csv
+#   data/features/observations_quality_report.json
+```
+
+### Build parcel-level features (Day 5B)
+```powershell
+# One descriptive feature record per parcel inside the commitment window
+# configured in backend/ml/processing_config.json (inclusive start /
+# exclusive end, UTC). No labels, no model training, no interpolation.
+.\.venv\Scripts\python.exe scripts\build_features.py
+
+# Outputs:
+#   data/features/parcel_features.csv
+#   data/features/parcel_features_report.json
 ```
 
 ### Export full-season NDVI + valid pixel fraction (requires Copernicus auth)
@@ -290,7 +316,140 @@ window). Key fields:
 - Identical inputs + configuration produce identical outputs.
 - CSV schema is consistent; `valid_pixel_fraction` is optional but preserved when present.
 
-## 11. Current Limitations
+## 11. ML-Ready Observation Dataset (Day 5A)
+
+`scripts/prepare_ml_dataset.py` turns the real exports into a single
+standardised, quality-filtered dataset:
+
+```text
+parcel_id, acquired_at, scene_id, ndvi_mean, valid_pixel_fraction
+```
+
+Outputs (regenerated deterministically from the raw exports):
+
+- `data/features/observations_clean.csv` — accepted observations only
+- `data/features/observations_quality_report.json` — counts, exclusion
+  reasons, per-parcel accounting, date ranges, dataset SHA-256 and warnings
+
+Processing policy:
+
+- One source file per parcel: `_quality` exports are preferred over
+  NDVI-only exports (real quality metadata), full season over the June-only
+  test window. Alternate files are reported as skipped and never merged,
+  because the June export is a subset of the full season.
+- Timestamps are parsed as UTC (pandas `ISO8601`) and written as
+  `YYYY-MM-DDTHH:MM:SSZ`; missing/unparseable timestamps are excluded.
+- Missing or out-of-range NDVI is excluded (never imputed). Missing NDVI on a
+  clouded acquisition is a structural exclusion, not a fabricated value.
+- Duplicate `(parcel_id, acquired_at)` rows are removed deterministically
+  (first occurrence in the source file).
+- Rule C is applied through the existing
+  `backend.ml.quality.filter_observations_by_quality()` with
+  `min_valid_pixel_fraction` from `processing_config.json` (0.50). Missing
+  quality metadata is treated as insufficient, never as valid.
+- Accepted observations are sorted chronologically (ties by `parcel_id`).
+
+Real result on the current data (2026-10-19 run):
+
+| Metric | Value |
+|---|---|
+| Source | `data/ndvi/parcel_01_2024_quality.csv` (preferred over 4 alternate files) |
+| Original observations | 48 |
+| Accepted observations | 29 |
+| Excluded observations | 19 (13 missing/clouded NDVI + 6 below 0.50) |
+| Unique parcels | 1 (`parcel_01`) |
+| Accepted date range | 2024-03-23 → 2024-10-24 |
+| Dataset SHA-256 | `38ef773ccda3c6d48c9b56906c54f2bc84315d8e525853a9f4ab28966b7952e6` |
+
+These counts match the Day 4 verification (`29` quality-valid observations),
+confirming the dataset is derived from the same real measurements. The
+`scene_id` column is empty because the aggregated openEO export does not
+expose scene identifiers (never fabricated). Raw files were verified
+byte-identical (SHA-256) before and after the run.
+
+## 12. Parcel Feature Engineering (Day 5B)
+
+`backend/ml/features.py` (driver: `scripts/build_features.py`) converts the
+quality-approved observations from §11 into **one descriptive feature record
+per parcel** within the configured commitment window:
+
+```text
+parcel_id, ndvi_mean, ndvi_min, ndvi_max, ndvi_std, ndvi_range, ndvi_trend,
+observation_count, observation_span_days, mean_valid_pixel_fraction,
+min_valid_pixel_fraction
+```
+
+Outputs (regenerated deterministically from `observations_clean.csv`):
+
+- `data/features/parcel_features.csv` — one row per parcel
+- `data/features/parcel_features_report.json` — diagnostics per parcel
+  (counts, distinct dates, span, quality metadata, evidence sufficiency),
+  feature units, input/output SHA-256, warnings and the grouping limitation
+
+Feature definitions:
+
+- `ndvi_std` uses the **population** convention (`ddof=0`): the accepted
+  observations in the window are treated as the complete set, not a sample.
+- `ndvi_trend` is an ordinary-least-squares slope of NDVI against **elapsed
+  days since the first distinct acquisition date** (NDVI units / day). It is
+  `null` when fewer than two distinct observation dates exist; dates are never
+  invented and missing dates are never interpolated.
+- `observation_count` counts accepted observations; `observation_span_days` is
+  the number of days between the first and last accepted acquisition.
+- `mean_valid_pixel_fraction` / `min_valid_pixel_fraction` come only from real
+  `valid_pixel_fraction` values.
+
+Safeguards:
+
+- The commitment window uses the existing convention (inclusive start,
+  exclusive end, UTC) sourced from `processing_config.json`; an invalid window
+  raises instead of silently widening the selection.
+- When `valid_pixel_fraction` is present, Rule C is re-applied defensively
+  through the existing `backend.ml.quality.filter_observations_by_quality()`
+  (no duplicated logic and no changed thresholds). When the whole column is
+  absent, NDVI features are still computed but the quality features are `null`
+  and `quality_metadata_available` is `false`.
+- No labels, no rule verdicts (`conform`/`nonconform`/`inconclusive`) and no
+  model training are involved. Missing measurements are excluded, never
+  imputed; no synthetic parcel is created.
+- Parcels with fewer than `min_valid_observations` (5) accepted observations
+  keep their descriptive features but are marked
+  `evidence_sufficiency: "insufficient"` and do not qualify for compliance
+  verification. The verifier's thresholds are unchanged.
+- Multi-period limitation: features are grouped by `parcel_id` only. With more
+  than one commitment period the grouping key must become
+  `(parcel_id, window_start, window_end)` so periods are never combined
+  silently (documented in the report).
+
+Real result on the current data (2026-10-19 run):
+
+| Feature | Value |
+|---|---|
+| `parcel_id` | `parcel_01` |
+| `ndvi_mean` | 0.394553 |
+| `ndvi_min` | 0.151147 |
+| `ndvi_max` | 0.920044 |
+| `ndvi_std` (population) | 0.287082 |
+| `ndvi_range` | 0.768897 |
+| `ndvi_trend` | -0.003755 NDVI/day |
+| `observation_count` | 29 |
+| `observation_span_days` | 215.0 |
+| `mean_valid_pixel_fraction` | 0.966834 |
+| `min_valid_pixel_fraction` | 0.6598 |
+
+| Metric | Value |
+|---|---|
+| Parcels processed | 1 (`parcel_01`) |
+| Feature records | 1 |
+| Observations used | 29 (window 2024-03-01 → 2024-11-01 exclusive) |
+| Independent recomputation | matches exactly |
+| Dataset SHA-256 | `b29ee3ab8a05181ed36a78a0f3a4ce0095df1b461bb33b3f0c6d5de0922c216a` |
+
+Because only one parcel exists, **supervised generalization cannot be
+evaluated** and rows from the same parcel are not independent samples. This is
+a documented limitation, not a modelling claim.
+
+## 13. Current Limitations
 
 1. **Pixel fraction — now measured, not pending**: Live `valid_pixel_fraction`
    values exist for the full season (`parcel_01_2024_quality.csv`) and for the
@@ -309,7 +468,7 @@ window). Key fields:
 4. **Scene IDs**: The aggregated openEO output does not expose individual scene IDs in the CSV. The schema accepts `scene_id` optionally; when missing, it stays empty and is never fabricated.
 5. **Agronomic validity**: NDVI cannot demonstrate absence of herbicides, compliance with fertilization rules, or organic certification.
 
-## 12. Corina Integration Notes
+## 14. Corina Integration Notes
 
 Corina's backend should consume:
 - **Primary interface:** `verify_parcel(parcel_id, policy, evidence_directory)` from `backend.ml.rules`
@@ -327,10 +486,11 @@ Corina's backend should consume:
   recognized as an alias of `date`, and `band_unnamed` (raw openEO exports) as
   an alias of `ndvi_mean`.
 
-## 13. Reserved for Day 5/Day 6
+## 15. Reserved for Day 6
 
 - Train/test split by `parcel_id` (GroupKFold) with independent test set.
-- Feature engineering (temporal features, slope, min/max, interval coverage) without leakage.
 - LightGBM baseline + evaluation with confusion matrix/F1.
+- Labels from `data/labels.csv` integration (see `backend/ml/LABELING.md`).
 - Evidence document canonicalization/hashing (separately owned by Corina; schema alignment).
-- Labels from `data/labels.csv` integration.
+
+Feature engineering (Day 5B) is complete — see §12.
