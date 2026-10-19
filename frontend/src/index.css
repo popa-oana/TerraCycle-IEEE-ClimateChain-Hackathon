@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+  color: #17191C;
+  background: #F8F7F4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
