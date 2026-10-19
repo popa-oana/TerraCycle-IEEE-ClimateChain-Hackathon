@@ -59,10 +59,13 @@ POLICY = {
     "window_end": PROCESSING_CONFIG["time_interval"]["end"],
 }
 
-# CSV candidates in priority order
+# CSV candidates in priority order (quality-enriched exports first: they
+# carry real valid_pixel_fraction measurements, so Rule C is enforced)
 CSV_CANDIDATES = [
-    DATA_DIR / f"{PARCEL_ID}_2024.csv",        # full season preferred
-    DATA_DIR / f"{PARCEL_ID}_june_2024.csv",    # June-only fallback
+    DATA_DIR / f"{PARCEL_ID}_2024_quality.csv",  # full season + pixel quality
+    DATA_DIR / f"{PARCEL_ID}_2024.csv",          # full season NDVI-only
+    DATA_DIR / f"{PARCEL_ID}_june_2024_quality.csv",  # June + pixel quality
+    DATA_DIR / f"{PARCEL_ID}_june_2024.csv",     # June-only fallback
 ]
 
 
@@ -122,6 +125,12 @@ print(f"Coloane:         {df.columns.tolist()}")
 if "band_unnamed" in df.columns:
     df = df.rename(columns={"band_unnamed": "ndvi_mean"})
     print("\nColoana 'band_unnamed' redenumita in 'ndvi_mean'.")
+
+# The standard merged export (parcel_01_*_quality.csv) uses `acquired_at`
+# for the timestamp column; accept it as an alias for `date`.
+if "date" not in df.columns and "acquired_at" in df.columns:
+    df = df.rename(columns={"acquired_at": "date"})
+    print("\nColoana 'acquired_at' redenumita in 'date'.")
 
 required_columns = ["date", "ndvi_mean"]
 missing = [c for c in required_columns if c not in df.columns]

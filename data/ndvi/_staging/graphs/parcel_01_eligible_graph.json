@@ -1,0 +1,327 @@
+{
+  "process_graph": {
+    "loadcollection1": {
+      "process_id": "load_collection",
+      "arguments": {
+        "bands": [
+          "B04",
+          "B08",
+          "SCL"
+        ],
+        "id": "SENTINEL2_L2A",
+        "spatial_extent": null,
+        "temporal_extent": [
+          "2024-06-01",
+          "2024-07-01"
+        ]
+      }
+    },
+    "reducedimension1": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "loadcollection1"
+        },
+        "dimension": "bands",
+        "reducer": {
+          "process_graph": {
+            "arrayelement1": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "index": 2
+              }
+            },
+            "eq1": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 1
+              }
+            },
+            "eq2": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 2
+              }
+            },
+            "or1": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "eq1"
+                },
+                "y": {
+                  "from_node": "eq2"
+                }
+              }
+            },
+            "eq3": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 3
+              }
+            },
+            "or2": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "or1"
+                },
+                "y": {
+                  "from_node": "eq3"
+                }
+              }
+            },
+            "eq4": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 4
+              }
+            },
+            "or3": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "or2"
+                },
+                "y": {
+                  "from_node": "eq4"
+                }
+              }
+            },
+            "eq5": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 5
+              }
+            },
+            "or4": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "or3"
+                },
+                "y": {
+                  "from_node": "eq5"
+                }
+              }
+            },
+            "eq6": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 6
+              }
+            },
+            "or5": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "or4"
+                },
+                "y": {
+                  "from_node": "eq6"
+                }
+              }
+            },
+            "eq7": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 7
+              }
+            },
+            "or6": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "or5"
+                },
+                "y": {
+                  "from_node": "eq7"
+                }
+              }
+            },
+            "eq8": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 8
+              }
+            },
+            "or7": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "or6"
+                },
+                "y": {
+                  "from_node": "eq8"
+                }
+              }
+            },
+            "eq9": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 9
+              }
+            },
+            "or8": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "or7"
+                },
+                "y": {
+                  "from_node": "eq9"
+                }
+              }
+            },
+            "eq10": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 10
+              }
+            },
+            "or9": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "or8"
+                },
+                "y": {
+                  "from_node": "eq10"
+                }
+              }
+            },
+            "eq11": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 11
+              }
+            },
+            "or10": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "or9"
+                },
+                "y": {
+                  "from_node": "eq11"
+                }
+              },
+              "result": true
+            }
+          }
+        }
+      }
+    },
+    "convertdatatype1": {
+      "process_id": "convert_data_type",
+      "arguments": {
+        "data": {
+          "from_node": "reducedimension1"
+        },
+        "data_type": "float32"
+      }
+    },
+    "aggregatespatial1": {
+      "process_id": "aggregate_spatial",
+      "arguments": {
+        "data": {
+          "from_node": "convertdatatype1"
+        },
+        "geometries": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": {
+                "id": "parcel_01",
+                "source": "manual_digitization",
+                "description": "Parcela demonstrativa TerraCycle Proof"
+              },
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      23.506627,
+                      43.948277
+                    ],
+                    [
+                      23.519075,
+                      43.94976
+                    ],
+                    [
+                      23.538736,
+                      43.954518
+                    ],
+                    [
+                      23.541827,
+                      43.935917
+                    ],
+                    [
+                      23.512207,
+                      43.933691
+                    ],
+                    [
+                      23.506627,
+                      43.948277
+                    ]
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "reducer": {
+          "process_graph": {
+            "mean1": {
+              "process_id": "mean",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          }
+        }
+      },
+      "result": true
+    }
+  }
+}

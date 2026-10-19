@@ -48,7 +48,7 @@ SCL masking (retain classes 4, 5)
     +--> valid mask (0/1)                       --> valid_pixel_fraction = mean
     |
     v
-CSV export, merged schema (data/ndvi/parcel_01_2024.csv)
+CSV export, merged schema (data/ndvi/parcel_01_2024_quality.csv)
     parcel_id, acquired_at, scene_id, ndvi_mean, valid_pixel_fraction
     |
     v
@@ -101,18 +101,24 @@ pip install pytest
 ### Run Tests
 
 ```powershell
-# Original test script (6 synthetic scenarios)
+# Original test script (synthetic scenarios)
 .\.venv\Scripts\python.exe tests\test_rules.py
 
-# Comprehensive rules suite (44 tests)
+# Comprehensive rules suite
 .\.venv\Scripts\python.exe -m pytest tests\test_rules_pytest.py -v
 
-# Day 4 quality / coverage / export-merge suite (42 tests)
+# Day 4 quality / coverage suite
 .\.venv\Scripts\python.exe -m pytest tests\test_quality.py -v
 
-# Everything (86 tests)
-.\.venv\Scripts\python.exe -m pytest tests\ -q
+# Task 3A pixel-coverage + processing-graph suite
+.\.venv\Scripts\python.exe -m pytest tests\test_pixel_coverage.py -v
+
+# All ML/quality suites (151 tests)
+.\.venv\Scripts\python.exe -m pytest tests\test_rules.py tests\test_rules_pytest.py tests\test_quality.py tests\test_pixel_coverage.py -q
 ```
+
+> `tests/test_hashing.py` belongs to the backend hashing module and needs the
+> `eth_abi` dependency, which is not installed in the ML virtual environment.
 
 ### Export New Satellite Data (requires Copernicus authentication)
 
@@ -120,6 +126,7 @@ pip install pytest
 .\.venv\Scripts\python.exe scripts\export_ndvi.py            # non-destructive (writes _quality.csv if target exists)
 .\.venv\Scripts\python.exe scripts\export_ndvi.py --force    # overwrite target CSV
 .\.venv\Scripts\python.exe scripts\export_ndvi.py --dry-run  # build the openEO graph without running a job
+.\.venv\Scripts\python.exe scripts\export_ndvi.py --reuse-ndvi data/ndvi/parcel_01_2024.csv  # coverage jobs only
 ```
 
 The export reads all parameters from `backend/ml/processing_config.json`, computes
@@ -150,23 +157,50 @@ All values come from `backend/ml/processing_config.json`.
 
 ### Decision Logic
 
-1. **Filter (structural)**: Remove observations with `None`, `NaN`, or NDVI outside `[-1, 1]`
-2. **Quality gate (Rule C)**: If the CSV has a `valid_pixel_fraction` column, drop
+1. **Commitment window (filter)**: If the policy provides BOTH `window_start`
+   and `window_end`, keep only rows whose acquisition timestamp satisfies
+   `window_start <= acquired_at < window_end` — **inclusive start, exclusive
+   end**, compared in **UTC** (both bounds are parsed with `utc=True`). This
+   filter runs *before* every other rule (structural, pixel quality,
+   coverage, counting, classification), so no observation outside the
+   committed period can influence the verdict.
+   - Explicitly supplied but **invalid** window — one boundary missing,
+     unparseable date, or `window_end <= window_start` — → `inconclusive`
+     (`reason_code: "INVALID_INPUT"`). The verifier never silently falls back
+     to evaluating the whole dataset when a window was requested.
+   - Valid window that contains **zero** rows → `inconclusive`
+     (`reason_code: "INSUFFICIENT_OBSERVATIONS"`).
+   - **No window keys at all** → legacy unrestricted mode (see Limitations):
+     the whole CSV is evaluated and an explicit warning marks the result as
+     experimental and not settlement-ready.
+2. **Filter (structural)**: Remove observations with `None`, `NaN`, or NDVI outside `[-1, 1]`
+3. **Quality gate (Rule C)**: If the CSV has a `valid_pixel_fraction` column, drop
    observations whose fraction is `< min_valid_pixel_fraction` (or missing). If the
    column is absent, no observation is dropped but `evidence_quality` is reported as
    `"unknown"`.
-3. **Temporal coverage (Rule B)**: If the policy provides `window_start` and
-   `window_end`, compute coverage over fixed 10-day intervals. Coverage
-   `< min_temporal_coverage` → `inconclusive` (`INSUFFICIENT_TEMPORAL_COVERAGE`).
-4. **Count (Rule A)**: If fewer than `min_observations` quality-valid values remain → `inconclusive`
-5. **Classify**: Count how many quality-valid observations have NDVI > `ndvi_threshold`
-6. **Decide**:
+4. **Temporal coverage (Rule B)**: If the policy provides `window_start` and
+   `window_end`, compute coverage over fixed 10-day intervals (same
+   inclusive-start/exclusive-end boundary convention as the window filter).
+   Coverage `< min_temporal_coverage` → `inconclusive` (`INSUFFICIENT_TEMPORAL_COVERAGE`).
+5. **Count (Rule A)**: If fewer than `min_observations` quality-valid values remain → `inconclusive`
+6. **Classify**: Count how many quality-valid observations have NDVI > `ndvi_threshold`
+7. **Decide**:
    - If `vegetated_count / valid_count >= required_fraction` → `conform`
    - Otherwise → `nonconform`
 
 Temporal coverage is `intervals_with_valid_observations / total_intervals`. An
 interval is covered if it contains at least one valid observation; several
 observations in the same interval count once.
+
+> [!IMPORTANT]
+> The NDVI classification (steps 3–7) is an **experimental vegetation
+> classification**, not evidence-supported compliance. A `conform` verdict is
+> only meaningful together with assessed evidence quality
+> (`evidence_quality: "assessed"`, i.e. real `valid_pixel_fraction`
+> measurements). The current `_quality.csv` exports provide such measurements,
+> so the full-season result is `assessed` (and still `nonconform`). The verdict
+> remains experimental: the thresholds are working hypotheses, not agronomic
+> criteria.
 
 ### Verdict Mapping (EIP-712/Solidity)
 
@@ -178,28 +212,25 @@ observations in the same interval count once.
 
 ---
 
-## Real Satellite Results (June–October 2024)
+## Real Satellite Results (March–October 2024)
 
 The following are **actual observations from Copernicus Sentinel-2 L2A**, exported via openEO for parcel_01 (Dolj region, Romania):
 
-- **Source file**: `data/ndvi/parcel_01_2024.csv`
-- **Total rows**: 48 (of which 13 had missing NDVI due to cloud masking)
-- **Valid observations**: 35
+- **Source file**: `data/ndvi/parcel_01_2024_quality.csv` (live export executed 2026-10-19; NDVI reused from `parcel_01_2024.csv`, pixel coverage from two live coverage batch jobs)
+- **Total rows**: 48 (of which 13 are clouded acquisitions: NDVI undefined, `valid_pixel_fraction` 0.0)
+- **Quality-valid observations**: 29 (6 further observations excluded by Rule C, fraction < 0.50)
 - **Period**: 2024-03-03 to 2024-10-29
-- **NDVI range**: 0.1053 to 0.9200
-- **NDVI mean**: 0.4044
-- **NDVI median**: 0.2157
-- **Temporal coverage**: 0.92 (23/25 intervals of 10 days over 2024-03-01..2024-11-01)
-- **Evidence quality**: `unknown` — this CSV predates the `valid_pixel_fraction`
-  column, so Rule C could not be applied (see Limitations).
+- **NDVI range** (valid observations): 0.1053 to 0.9200
+- **Temporal coverage**: 0.76 (19/25 intervals of 10 days over 2024-03-01..2024-11-01)
+- **Evidence quality**: `assessed` — real `valid_pixel_fraction` measurements, Rule C enforced
 
 ### Provisional Verdict
 
 - **Verdict**: `nonconform` (code 1)
-- **Reason**: 13/35 observations above NDVI threshold 0.35 (fraction=0.37, required=0.80)
+- **Reason**: 10/29 quality-valid observations above NDVI threshold 0.35 (fraction=0.34, required=0.80)
 - **Validation status**: `experimental_only`
 
-The data shows high NDVI in March–May (vegetation season) followed by a sharp decline from June onwards, consistent with harvest or crop change. The provisional verifier evaluates the **entire available period**, not a specific committed window — which explains why most observations fall below the vegetation threshold.
+The data shows high NDVI in March–May (vegetation season) followed by a sharp decline from June onwards, consistent with harvest or crop change. The commitment window used for this run comes from `processing_config.json` (`2024-03-01` .. `2024-11-01`, inclusive start / exclusive end, UTC) and covers the whole CSV, so commitment-window filtering excludes no observation here; the post-June decline is what explains why most observations fall below the vegetation threshold. The verdict is driven by genuine vegetation dynamics, not by data gaps: 13 clouded and 6 low-coverage acquisitions were excluded by the structural and pixel-quality rules before classification.
 
 ---
 
@@ -208,17 +239,30 @@ The data shows high NDVI in March–May (vegetation season) followed by a sharp 
 > [!WARNING]
 > The following limitations apply to ALL outputs of this module.
 
-1. **Pixel validity fraction** (`valid_pixel_fraction`) support is implemented in the
-   export pipeline (`scripts/export_ndvi.py`) and in the verifier, but the real CSVs
-   currently committed under `data/ndvi/` predate the change and do not contain the
-   column. Live values require a Copernicus-authenticated re-export, which has not been
-   run. Until then, the verifier reports `evidence_quality: "unknown"` and does not apply
-   Rule C. The merge logic is covered by offline tests using mocked openEO outputs.
+1. **Pixel validity fraction** (`valid_pixel_fraction`) is now measured on real
+   data: the live exports completed on 2026-10-19 produced
+   `data/ndvi/parcel_01_2024_quality.csv` (48 acquisitions, full season) and
+   `data/ndvi/parcel_01_june_2024_quality.csv` (6 acquisitions, June test
+   window). The verifier prefers these `_quality` exports, applies Rule C to
+   the real measurements and reports `evidence_quality: "assessed"`. The older
+   NDVI-only exports remain untouched as raw data; when such a file is used
+   instead, the verifier reports `evidence_quality: "unknown"`, does not apply
+   Rule C, and warns that the result is experimental and not settlement-ready.
 
-2. **Temporal coverage** is now computed and enforced when the policy supplies a
-   verification window (`window_start`/`window_end`). The window is taken from
-   `processing_config.json` (`time_interval`). Observations with missing dates and
-   intervals with no valid observation are handled deterministically.
+2. **Commitment-window filtering** is applied whenever the policy supplies both
+   `window_start` and `window_end`: only observations with
+   `window_start <= acquired_at < window_end` (inclusive start, exclusive end,
+   UTC) are evaluated, and the same window bounds Rule B's coverage computation.
+   The window is taken from `processing_config.json` (`time_interval`). An
+   explicitly supplied but invalid window (one boundary missing, unparseable
+   date, or `window_end <= window_start`) returns `inconclusive`
+   (`INVALID_INPUT`) instead of evaluating the whole dataset; an empty valid
+   window returns `inconclusive` (`INSUFFICIENT_OBSERVATIONS`). Only policies
+   with *no* window keys at all fall back to the legacy unrestricted mode,
+   which is flagged experimental / not settlement-ready via `warnings`.
+   Temporal coverage (Rule B) is computed and enforced whenever that valid
+   window exists; observations with missing dates and intervals with no valid
+   observation are handled deterministically.
 
 3. **Demonstration polygon** may include multiple agricultural fields. The parcel boundary was manually digitized and has not been verified against cadastral records.
 
@@ -246,9 +290,10 @@ The data shows high NDVI in March–May (vegetation season) followed by a sharp 
 | 21–22 | Real data for all demo scenarios, frozen model/policy |
 | 23 | `docs/model.md` and `docs/limitations.md`; feature freeze |
 
-> Day 16 status: quality module, processing config, temporal coverage and the
-> integrated rules are implemented and tested. The only pending item is a live
-> Copernicus re-export to populate real `valid_pixel_fraction` values.
+> Day 16 status: quality module, processing config, temporal coverage, the
+> integrated rules and the live Copernicus exports (June test window + full
+> season) are implemented and tested. Real `valid_pixel_fraction` values are
+> now populated in the `_quality.csv` exports and enforced by the verifier.
 
 ---
 
@@ -278,7 +323,7 @@ def verify_parcel(
 | `policy` | `dict` | Verification policy. Optional keys: `ndvi_threshold` (0.35), `required_fraction` (0.80), `min_observations` (5), `min_valid_pixel_fraction` (0.50), `min_temporal_coverage` (0.50), `temporal_coverage_interval_days` (10), `window_start` (ISO date), `window_end` (ISO date, exclusive) |
 | `evidence_directory` | `str` | Path to directory containing NDVI CSV files (e.g., `"data/ndvi"`) |
 
-Rule B is applied only when both `window_start` and `window_end` are provided.
+Rule B is applied only when both `window_start` and `window_end` are provided; the same pair activates commitment-window filtering (inclusive start / exclusive end, UTC). An explicitly supplied but invalid window (one boundary missing, unparseable date, or `window_end <= window_start`) returns `inconclusive` with `INVALID_INPUT`; it never degrades into a full-dataset evaluation. Policies with no window keys keep the legacy unrestricted behaviour (experimental, not settlement-ready).
 Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
 
 ### Return Value
@@ -289,7 +334,7 @@ Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
     "verdict_code": 0 | 1 | 2,
     "reason_code": "RULE_BASED_DECISION" | "INSUFFICIENT_OBSERVATIONS"
                  | "INSUFFICIENT_TEMPORAL_COVERAGE" | "MISSING_EVIDENCE"
-                 | "CSV_READ_ERROR" | "INVALID_CSV_STRUCTURE",
+                 | "CSV_READ_ERROR" | "INVALID_CSV_STRUCTURE" | "INVALID_INPUT",
     "reason": "Human-readable explanation of the verdict",
     "observations": [
         {
@@ -302,23 +347,23 @@ Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
         ...
     ],
     "quality": {
-        "valid_count": 35,
+        "valid_count": 29,
         "total_rows": 48,
-        "excluded_count": 13,
+        "excluded_count": 19,
         "structural_excluded_count": 13,
-        "quality_excluded_count": 0,
-        "vegetated_count": 13,
-        "vegetated_fraction": 0.3714,
-        "quality_metadata_available": False,
+        "quality_excluded_count": 6,
+        "vegetated_count": 10,
+        "vegetated_fraction": 0.3448,
+        "quality_metadata_available": True,
         "evidence_quality": "assessed" | "unknown",
         "min_valid_pixel_fraction": 0.5,
-        "temporal_coverage": 0.92,
-        "covered_intervals": 23,
+        "temporal_coverage": 0.76,
+        "covered_intervals": 19,
         "total_intervals": 25,
         "interval_length_days": 10,
         "inconclusive_reason": null | "INSUFFICIENT_OBSERVATIONS"
-                            | "INSUFFICIENT_TEMPORAL_COVERAGE",
-        "warnings": ["valid_pixel_fraction missing; pixel-quality rule (Rule C) not applied"]
+                            | "INSUFFICIENT_TEMPORAL_COVERAGE" | "INVALID_INPUT",
+        "warnings": []
     },
     "model": {
         "model_version": "rule-based-v1",
@@ -339,7 +384,7 @@ Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
         "provider": "Copernicus Data Space",
         "dataset": "Sentinel-2 L2A",
         "method": "cloud-masked NDVI (SCL classes 4,5)",
-        "csv_file": "data/ndvi/parcel_01_2024.csv"
+        "csv_file": "data/ndvi/parcel_01_2024_quality.csv"
     }
 }
 ```
@@ -350,7 +395,7 @@ Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
 |---------|------|------|
 | `conform` | 0 | ≥ `required_fraction` of quality-valid observations have NDVI > `ndvi_threshold` |
 | `nonconform` | 1 | < `required_fraction` vegetated, with ≥ `min_observations` valid and sufficient temporal coverage |
-| `inconclusive` | 2 | < `min_observations` valid, insufficient temporal coverage, missing CSV, read error, or invalid structure |
+| `inconclusive` | 2 | < `min_observations` valid, insufficient temporal coverage, missing CSV, read error, invalid structure, or invalid commitment window (`INVALID_INPUT`) |
 
 ### Error Handling
 
@@ -359,14 +404,16 @@ Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
 - **Missing columns**: Returns `inconclusive` with `reason_code: "INVALID_CSV_STRUCTURE"`
 - **Insufficient observations**: Returns `inconclusive` with `reason_code: "INSUFFICIENT_OBSERVATIONS"`
 - **Insufficient temporal coverage**: Returns `inconclusive` with `reason_code: "INSUFFICIENT_TEMPORAL_COVERAGE"`
+- **Invalid commitment window**: Returns `inconclusive` with `reason_code: "INVALID_INPUT"` (explicitly supplied window invalid or partially specified, e.g. only one boundary, unparseable date, or `window_end <= window_start`); the verifier never silently falls back to evaluating the whole dataset.
 - **The function never raises exceptions** — all error states are returned as `inconclusive` verdicts with descriptive reason codes
 
 ### What Remains Provisional
 
-- Live `valid_pixel_fraction` values (pipeline implemented; re-export pending auth)
 - Rule-based only (no ML model)
 - Thresholds are experimental working hypotheses
-- Evidence quality can be `"unknown"` when quality metadata is missing
+- Evidence quality can still be `"unknown"` when an NDVI-only CSV is used (in
+  that case the result must not be treated as settlement-ready verification);
+  the current committed `_quality.csv` exports are `"assessed"`
 
 ### Usage Example
 

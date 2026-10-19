@@ -24,10 +24,126 @@ import pandas as pd
 # are excluded.
 ACCEPTED_SCL_CLASSES: tuple[int, ...] = (4, 5)
 
+# --- SCL eligibility policy (pixel-coverage denominator) ---
+# SCL classes 1..11 carry an actual scene classification. Class 0 is the
+# product's "NO DATA" value and NaN/missing values mean the pixel has no
+# observation at all. Eligible pixels are the observed pixels that can
+# legitimately contribute to the coverage denominator BEFORE cloud-quality
+# masking: cloudy/shadowed/defective pixels are eligible (they count as
+# not valid), while no-data and missing pixels are excluded entirely
+# because they carry no observation.
+ELIGIBLE_SCL_CLASSES: tuple[int, ...] = tuple(range(1, 12))
+
 
 def is_scl_class_usable(scl_class: int) -> bool:
     """Return True if an SCL class is accepted by the masking policy."""
     return scl_class in ACCEPTED_SCL_CLASSES
+
+
+def is_scl_class_eligible(scl_class: Any) -> bool:
+    """
+    Return True if an SCL class represents an actual observation that may
+    enter the coverage denominator (before cloud-quality masking).
+
+    Classes 1..11 are eligible; class 0 (NO DATA), None and NaN are not.
+    """
+    if scl_class is None:
+        return False
+    try:
+        if pd.isna(scl_class):
+            return False
+    except (TypeError, ValueError):
+        pass
+    return scl_class in ELIGIBLE_SCL_CLASSES
+
+
+def compute_valid_pixel_fraction(
+    valid_pixel_mean: Any,
+    eligible_pixel_mean: Any,
+) -> Optional[float]:
+    """
+    Calculate `valid_pixel_fraction = valid_pixels / eligible_pixels`.
+
+    The two inputs are spatial means of a 0/1 flag band over the SAME
+    parcel geometry on the SAME grid (both derived from the SCL band), so
+    the ratio of the means equals the ratio of the pixel counts.
+
+    Parameters
+    ----------
+    valid_pixel_mean : float or None
+        Spatial mean of the valid flag band (1 = SCL class 4 or 5,
+        0 = anything else) over the parcel.
+    eligible_pixel_mean : float or None
+        Spatial mean of the eligible flag band (1 = observed SCL class
+        1..11, 0 = no data / missing) over the same parcel.
+
+    Returns
+    -------
+    float in [0, 1], or None when the result is undefined:
+    - None/NaN input (missing SCL information) -> None
+    - eligible mean <= 0 (zero eligible pixels) -> None
+
+    The result is clipped to [0, 1]; valid pixels are a subset of eligible
+    pixels, so clipping only guards against floating-point round-off.
+    """
+    if valid_pixel_mean is None or eligible_pixel_mean is None:
+        return None
+    try:
+        valid = float(valid_pixel_mean)
+        eligible = float(eligible_pixel_mean)
+    except (TypeError, ValueError):
+        return None
+    if pd.isna(valid) or pd.isna(eligible):
+        return None
+    if eligible <= 0:
+        return None
+    fraction = valid / eligible
+    return float(min(1.0, max(0.0, fraction)))
+
+
+def _extract_flag_series(df: pd.DataFrame, value_col: str) -> pd.DataFrame:
+    """Normalize a raw openEO aggregate_spatial export to [date, value_col]."""
+    out = df.copy()
+    if value_col not in out.columns and "band_unnamed" in out.columns:
+        out = out.rename(columns={"band_unnamed": value_col})
+    if "date" not in out.columns or value_col not in out.columns:
+        missing = {"date", value_col} - set(out.columns)
+        raise ValueError(f"export missing columns {missing}")
+    out["date"] = pd.to_datetime(out["date"], errors="coerce", utc=True)
+    out = out.dropna(subset=["date"])
+    out = out.drop_duplicates(subset=["date"], keep="first")
+    return out[["date", value_col]]
+
+
+def coverage_means_to_fraction(
+    valid_df: pd.DataFrame,
+    eligible_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Combine the two raw coverage exports (spatial mean of the valid-flag
+    band and of the eligible-flag band, as produced by openEO
+    `aggregate_spatial` over the parcel) into one per-date series:
+
+        date, valid_pixel_fraction
+
+    Rows are matched on acquisition date with an inner join: a date present
+    in only one input cannot produce a fraction. The fraction is computed
+    with `compute_valid_pixel_fraction`, so zero eligible pixels or missing
+    SCL information yield NaN (never a fabricated value), and every
+    non-missing fraction lies in [0, 1].
+
+    The result is sorted chronologically and deduplicated per date.
+    """
+    valid = _extract_flag_series(valid_df, "valid_pixel_mean")
+    eligible = _extract_flag_series(eligible_df, "eligible_pixel_mean")
+
+    merged = pd.merge(valid, eligible, on="date", how="inner")
+    merged["valid_pixel_fraction"] = [
+        compute_valid_pixel_fraction(v, e)
+        for v, e in zip(merged["valid_pixel_mean"], merged["eligible_pixel_mean"])
+    ]
+    merged = merged.sort_values("date").reset_index(drop=True)
+    return merged[["date", "valid_pixel_fraction"]]
 
 
 def compute_ndvi(red: Optional[float], nir: Optional[float]) -> Optional[float]:

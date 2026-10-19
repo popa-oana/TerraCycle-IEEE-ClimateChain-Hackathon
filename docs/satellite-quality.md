@@ -52,8 +52,8 @@ valid_pixel_fraction = number of valid pixels / number of eligible pixels inside
 ```
 
 Where:
-- **Valid pixels** = pixels inside the parcel that satisfy the SCL acceptance criteria (classes 4 or 5) and are not masked by quality flags.
-- **Eligible pixels** = total pixels inside the parcel boundary for that acquisition (denominator computed before applying cloud/quality exclusions).
+- **Valid pixels** = pixels inside the parcel that satisfy the SCL acceptance criteria (classes 4 or 5).
+- **Eligible pixels** = pixels inside the parcel for that acquisition that carry an actual SCL observation (classes 1–11), i.e. the denominator is determined **before** cloud-quality masking. Cloudy, shadowed and defective pixels stay in the denominator and count as *not valid*. SCL class 0 (`NO DATA`) and missing/NaN pixels carry no observation at all and are excluded from the denominator entirely — not every pixel is assumed to have a valid observation.
 
 **Key requirements:**
 - Computed separately for each satellite observation.
@@ -62,24 +62,52 @@ Where:
 - Handles no-data and zero-denominator cases safely.
 - NDVI mean and quality metrics correspond to the same acquisition.
 
-**How it is computed in this project:** `scripts/export_ndvi.py` builds a parallel
-openEO graph from the *same* accepted-pixel mask used for the NDVI:
-```text
-valid_flags   = ((SCL == 4) | (SCL == 5)).astype("float32")   # 1 = valid, 0 = masked
-valid_fraction = valid_flags.aggregate_spatial(geometry, reducer="mean")
-```
-The mean of a 0/1 band over the parcel equals `valid pixels / all parcel pixels`,
-i.e. the denominator is the whole parcel computed *before* cloud exclusion, exactly
-as required. Cloudy, shadowed, water, defective and no-data pixels all count as
-invalid (0). The NDVI mean uses the same mask but masks those pixels out so that
-only valid pixels contribute. The two aggregated CSV exports are merged by
-acquisition timestamp into the standard schema via
-`backend.ml.quality.merge_ndvi_and_coverage`.
+**How it is computed in this project:** `scripts/export_ndvi.py` builds three
+openEO graphs from the same `SENTINEL2_L2A` load. Two of them cover pixel
+quality — both derived from the **SCL band alone** (20 m native resolution),
+so numerator and denominator share an identical spatial grid — and both
+aggregate with the same `aggregate_spatial` call over the same parcel
+FeatureCollection:
 
-Because this requires a live openEO batch job, the existing real CSVs in
-`data/ndvi/` still have no `valid_pixel_fraction` column; `verify_parcel()` accepts
-CSVs both with and without it and reports `evidence_quality: "unknown"` when it is
-absent. The merge logic is covered by offline tests with mocked openEO outputs.
+```text
+valid_flags     = ((SCL == 4) | (SCL == 5)).convert_data_type("float32")
+eligible_flags  = ((SCL >= 1) | ... | (SCL == 11)).convert_data_type("float32")
+valid_mean      = valid_flags.aggregate_spatial(parcel, reducer="mean")
+eligible_mean   = eligible_flags.aggregate_spatial(parcel, reducer="mean")
+
+# computed client-side, per acquisition date:
+valid_pixel_fraction = valid_mean / eligible_mean
+```
+
+Because both means are taken over the same pixels on the same grid, the
+ratio of the means equals `valid pixels / eligible pixels`. The division is
+done **client-side** (`backend/ml/quality.py::compute_valid_pixel_fraction`)
+so that a zero/missing denominator yields `null` — never a fabricated value —
+and every produced fraction is clipped to `[0, 1]`. Cloudy, shadowed and
+defective pixels are eligible (denominator) but invalid (numerator); no-data
+and missing SCL pixels are excluded from both. The NDVI mean uses the same
+valid-pixel mask so that only valid pixels contribute to `ndvi_mean`. The
+three raw CSV exports are combined via `coverage_means_to_fraction` and
+merged by acquisition timestamp into the standard schema via
+`backend/ml.quality.merge_ndvi_and_coverage`.
+
+**Resolution policy (10 m / 20 m):** B04/B08 are 10 m native, SCL is 20 m
+native. The coverage numerator and denominator are computed exclusively on
+the 20 m SCL grid, so no arithmetic ever mixes resolutions inside the
+fraction. For the NDVI graph, the SCL-derived categorical mask is explicitly
+resampled onto the 10 m NDVI grid with nearest neighbour
+(`resample_cube_spatial`, `method="near"`) before `mask` is applied —
+nearest neighbour is the correct resampling for class labels. This policy is
+recorded in `processing_config.json` under `coverage_policy`.
+
+Because this requires a live openEO batch job, the pipeline was executed for
+real (2026-10-19): `data/ndvi/parcel_01_june_2024_quality.csv` (June test
+window) and `data/ndvi/parcel_01_2024_quality.csv` (full season) now contain
+genuine `valid_pixel_fraction` values per acquisition (see §9).
+`verify_parcel()` prefers these `_quality` exports when present, so Rule C is
+enforced on real measurements; CSVs without the column remain supported with
+`evidence_quality: "unknown"`. The merge logic is covered by offline tests
+with mocked openEO outputs (`tests/test_pixel_coverage.py`).
 
 ## 5. Temporal Coverage Calculation
 
@@ -103,8 +131,8 @@ Temporal coverage is independent of pixel coverage — both must be satisfied.
 The following rules are enforced in `verify_parcel()` when quality metadata is present:
 
 - **Rule A (Minimum observations):** Fewer than `min_observations` (default 5) valid observations → `inconclusive` (`reason_code: INSUFFICIENT_OBSERVATIONS`). (Legacy rule, preserved.)
-- **Rule B (Minimum temporal coverage):** Only enforced when the policy provides both `window_start` and `window_end`. If `temporal_coverage < min_temporal_coverage` (default 0.5) the verdict becomes `inconclusive` (`reason_code: INSUFFICIENT_TEMPORAL_COVERAGE`). When no window is provided, the rule is not applied and a warning is reported.
-- **Rule C (Pixel quality):** Only enforced when the CSV contains a `valid_pixel_fraction` column. Observations with `valid_pixel_fraction < min_valid_pixel_fraction` (default 0.50) are removed from valid evidence; a missing value is treated as *unknown* (not passing). When the column is absent entirely, the rule is not applied and `evidence_quality` is reported as `"unknown"` with a warning.
+- **Rule B (Minimum temporal coverage):** Enforced only when the policy provides both `window_start` and `window_end` and they form a valid UTC window (inclusive start / exclusive end). If `temporal_coverage < min_temporal_coverage` (default 0.5) the verdict becomes `inconclusive` (`reason_code: INSUFFICIENT_TEMPORAL_COVERAGE`). When no window is provided, the rule is not applied and warnings mark the legacy mode as experimental / not settlement-ready. If a window is explicitly supplied but invalid (missing one boundary, unparseable date, or `window_end <= window_start`), `verify_parcel()` returns `inconclusive` with `reason_code: "INVALID_INPUT"` and never falls back to the whole dataset.
+- **Rule C (Pixel quality):** Only enforced when the CSV contains a `valid_pixel_fraction` column. Observations with `valid_pixel_fraction < min_valid_pixel_fraction` (default 0.50) are removed from valid evidence; a missing value is treated as *unknown* (not passing). When the column is absent entirely, the rule is not applied and `evidence_quality` is reported as `"unknown"` with a warning that the result is experimental and must not be treated as settlement-ready verification.
 
 These rules distinguish between:
 - **Evidence quality** (pixel coverage, temporal coverage, observation count)
@@ -118,7 +146,8 @@ These rules distinguish between:
 2. CSV cannot be read → `reason_code: "CSV_READ_ERROR"`
 3. Missing required columns (date, ndvi_mean) → `reason_code: "INVALID_CSV_STRUCTURE"`
 4. Insufficient valid observations after filtering → `reason_code: "INSUFFICIENT_OBSERVATIONS"`
-5. Insufficient temporal coverage (if policy specifies `min_temporal_coverage` and data allows computation) → `reason_code: "INSUFFICIENT_TEMPORAL_COVERAGE"` or `INSUFFICIENT_OBSERVATIONS` as appropriate
+5. Insufficient temporal coverage (if policy specifies a valid window and `min_temporal_coverage`) → `reason_code: "INSUFFICIENT_TEMPORAL_COVERAGE"`
+6. Invalid commitment window (explicitly supplied but missing boundary, unparseable date, or `window_end <= window_start`) → `reason_code: "INVALID_INPUT"` (fails safely; never evaluates entire dataset)
 
 Importantly: **NDVI alone does not imply compliance**. Vegetation presence is necessary but not sufficient to demonstrate sustainable practices.
 
@@ -156,22 +185,94 @@ All commands run from the repository root.
 # Day 4 quality / coverage / export-merge suite
 .\.venv\Scripts\python.exe -m pytest tests/test_quality.py -v
 
+# Task 3A pixel-coverage + processing-graph suite
+.\.venv\Scripts\python.exe -m pytest tests/test_pixel_coverage.py -v
+
 # Everything
 .\.venv\Scripts\python.exe -m pytest tests/ -q
 ```
 
 ### Export full-season NDVI + valid pixel fraction (requires Copernicus auth)
 ```powershell
+# Full pipeline (3 batch jobs: NDVI + valid + eligible coverage):
 .\.venv\Scripts\python.exe scripts\export_ndvi.py            # writes to _quality.csv if target exists
 .\.venv\Scripts\python.exe scripts\export_ndvi.py --force    # overwrite the target CSV
-.\.venv\Scripts\python.exe scripts\export_ndvi.py --dry-run  # build the graph only
+.\.venv\Scripts\python.exe scripts\export_ndvi.py --dry-run  # build + serialize + check graphs (NO auth, NO job)
+
+# Reuse an existing, configuration-compatible NDVI export and run ONLY the
+# two coverage jobs (used for the full season on 2026-10-19):
+.\.venv\Scripts\python.exe scripts\export_ndvi.py --reuse-ndvi data/ndvi/parcel_01_2024.csv
+
+# June 2024 test window (already executed; same commands):
+.\.venv\Scripts\python.exe scripts\export_ndvi.py --config backend/ml/processing_config_june_2024.json
 ```
 
-**Note:** `export_ndvi.py` requires browser-based OIDC authentication to Copernicus Data Space. If auth is not available, inspect existing CSVs (`data/ndvi/parcel_01_2024.csv`, `parcel_01_june_2024.csv`) instead.
+Raw openEO downloads are stored in `data/ndvi/_staging/`, named after the
+config's `output_csv` stem (e.g. `parcel_01_2024_coverage_valid_raw.csv`,
+`parcel_01_june_2024_ndvi_raw.csv`), so different configs never overwrite each
+other's raw data.
 
-## 9. Configuration & Reproducibility
+**Note:** `--dry-run` does **not** require authentication: it builds the three
+processing graphs, writes them to `data/ndvi/_staging/graphs/`, checks every
+process against the backend's published process list and requests server-side
+graph validation. Static validation does not prove server-side execution will
+succeed — that is only confirmed by a real batch job. The live export
+(`scripts/export_ndvi.py` without `--dry-run`) requires OIDC authentication to
+Copernicus Data Space; the stored refresh token is reused silently when valid,
+otherwise a browser login is opened. If auth is not available, inspect the
+existing CSVs instead (`parcel_01_2024_quality.csv` and
+`parcel_01_june_2024_quality.csv` carry live pixel fractions; the older
+`parcel_01_2024.csv` / `parcel_01_june_2024.csv` carry NDVI only).
 
-All processing parameters are stored in `backend/ml/processing_config.json`. Key fields:
+## 9. Live Export Results (executed 2026-10-19)
+
+Both live exports completed against the Copernicus openEO backend. All values
+below are real measurements, not fixtures. Raw downloads are retained in
+`data/ndvi/_staging/`.
+
+### June 2024 test window (`processing_config_june_2024.json`, 2024-06-01 → 2024-07-01)
+
+Three batch jobs finished successfully (NDVI, valid-flag mean, eligible-flag
+mean). Output: `data/ndvi/parcel_01_june_2024_quality.csv`.
+
+| Metric | Value |
+|---|---|
+| Acquisitions exported | 6 (2024-06-01, 06, 11, 16, 21, 26) |
+| `valid_pixel_fraction` | 1.0 on every date (cloud-free June over the parcel) |
+| NDVI range | 0.1993 – 0.6080 |
+
+Cross-check: the six June NDVI values are byte-identical to the corresponding
+rows of the pre-existing full-season export, confirming the NDVI graph is
+reproducible across independent runs.
+
+### Full season (`processing_config.json`, 2024-03-01 → 2024-11-01 exclusive)
+
+The NDVI series was reused from the existing real export
+(`parcel_01_2024.csv`, configuration-compatible) via `--reuse-ndvi`; only the
+two coverage jobs were run. Output: `data/ndvi/parcel_01_2024_quality.csv`.
+
+| Metric | Value |
+|---|---|
+| Total acquisitions | 48 (2024-03-03 → 2024-10-29) |
+| Observations with NDVI | 35 |
+| Clouded acquisitions (NDVI `NaN`, fraction 0.0) | 13 |
+| Quality-valid observations (fraction ≥ 0.50) | 29 |
+| Quality-excluded (0 < fraction < 0.50) | 6 |
+| `valid_pixel_fraction` values observed | 0.0, 0.0137, 0.0558, 0.0956, 0.1785, 0.3701, 0.4011, 0.6598, 0.6997, 0.7783, 0.9046, 0.9958, 1.0 |
+| Temporal coverage (10-day intervals) | 0.76 (19/25 intervals) |
+| Evidence quality | `assessed` |
+| Provisional verdict (0.35 NDVI / 0.80 fraction policy) | `nonconform` — 10/29 observations above threshold (0.34 < 0.80) |
+
+The verdict is driven by the genuine post-June decline (harvest / bare soil),
+not by missing data: all 13 clouded acquisitions and all 6 low-fraction
+acquisitions were excluded by the structural and pixel-quality rules before
+classification. Full details in `data/features/parcel_01_provisional_result.json`.
+
+## 10. Configuration & Reproducibility
+
+All processing parameters are stored in `backend/ml/processing_config.json`
+(full season) and `backend/ml/processing_config_june_2024.json` (June test
+window). Key fields:
 - `time_interval`: start/end for full season (also used as the verification window)
 - `parcel_geojson`: parcel boundary used for aggregation
 - `output_csv`: target path for the merged export
@@ -189,15 +290,26 @@ All processing parameters are stored in `backend/ml/processing_config.json`. Key
 - Identical inputs + configuration produce identical outputs.
 - CSV schema is consistent; `valid_pixel_fraction` is optional but preserved when present.
 
-## 10. Current Limitations
+## 11. Current Limitations
 
-1. **Pixel fraction in existing real CSVs**: The export pipeline (`scripts/export_ndvi.py`) now computes `valid_pixel_fraction` (mean of the accepted-pixel mask) and merges it with the NDVI series. However, the real CSVs currently committed in `data/ndvi/` were produced before this change and therefore lack the column; they cannot be retro-fitted offline because pixel counts are not stored. `verify_parcel()` accepts CSVs both with and without this column and flags missing quality metadata as `evidence_quality: "unknown"`.
-2. **Temporal coverage computation**: Requires `window_start`/`window_end` in policy and acquisition dates. When policy omits these, temporal coverage is not enforced (legacy behavior preserved for backward compatibility).
-3. **Live full-season export**: `scripts/export_ndvi.py` was updated and dry-run/CLI-verified, but the live batch job requires browser-based Copernicus OIDC authentication and was **not executed** in this session. Live values for `valid_pixel_fraction` are therefore **pending**; existing real CSVs (`parcel_01_2024.csv`) are used for verification. The merge logic is tested offline with mocked openEO outputs.
-4. **Scene IDs**: The aggregated openEO output may not expose individual scene IDs in the CSV. The schema accepts `scene_id` optionally; when missing, it's not fabricated.
+1. **Pixel fraction — now measured, not pending**: Live `valid_pixel_fraction`
+   values exist for the full season (`parcel_01_2024_quality.csv`) and for the
+   June test window (`parcel_01_june_2024_quality.csv`); `verify_parcel()`
+   prefers these exports and enforces Rule C on real measurements
+   (`evidence_quality: "assessed"`). The older NDVI-only exports
+   (`parcel_01_2024.csv`, `parcel_01_june_2024.csv`) remain untouched as raw
+   data and are still supported with `evidence_quality: "unknown"` when used.
+2. **Commitment-window filtering and temporal coverage**: When the policy supplies a valid commitment window (`window_start`/`window_end`, UTC, inclusive start / exclusive end), only observations inside that window are evaluated, and temporal coverage (Rule B) is computed over it. An explicitly supplied but invalid window (one boundary missing, unparseable date, or `window_end <= window_start`) causes `verify_parcel()` to return `inconclusive` with `reason_code: "INVALID_INPUT"` and it never silently falls back to evaluating the whole dataset. If no window keys are provided at all, the legacy unrestricted mode is preserved (the entire CSV is evaluated) but flagged with warnings that the result is experimental and not settlement-ready. In that case temporal coverage is not enforced.
+3. **Coverage export reuse**: `--reuse-ndvi <csv>` re-runs only the two
+   coverage jobs against a configuration-compatible existing NDVI export. The
+   compatibility requirement is honest: NDVI and coverage must come from the
+   same collection, SCL policy and geometry. Compatibility was confirmed for
+   the full-season reuse by comparing the June rows of both exports
+   (byte-identical NDVI values).
+4. **Scene IDs**: The aggregated openEO output does not expose individual scene IDs in the CSV. The schema accepts `scene_id` optionally; when missing, it stays empty and is never fabricated.
 5. **Agronomic validity**: NDVI cannot demonstrate absence of herbicides, compliance with fertilization rules, or organic certification.
 
-## 11. Corina Integration Notes
+## 12. Corina Integration Notes
 
 Corina's backend should consume:
 - **Primary interface:** `verify_parcel(parcel_id, policy, evidence_directory)` from `backend.ml.rules`
@@ -208,14 +320,17 @@ Corina's backend should consume:
 **Key integration points:**
 - Verdict codes remain 0/1/2 (unchanged). 
 - Function never raises exceptions; all error states return `inconclusive` with `reason_code`.
-- CSV paths are resolved relative to `evidence_directory`; function prefers `_2024.csv`, then `_june_2024.csv`, then `_clean.csv`.
+- CSV paths are resolved relative to `evidence_directory`; function prefers `_2024_quality.csv` (real pixel fractions, Rule C enforced), then `_2024.csv`, then the June equivalents, then `_clean.csv`.
 - Observations are sorted chronologically and deduplicated by date.
+- The standard merged export schema (`parcel_id, acquired_at, scene_id,
+  ndvi_mean, valid_pixel_fraction`) is accepted directly: `acquired_at` is
+  recognized as an alias of `date`, and `band_unnamed` (raw openEO exports) as
+  an alias of `ndvi_mean`.
 
-## 12. Reserved for Day 5/Day 6
+## 13. Reserved for Day 5/Day 6
 
 - Train/test split by `parcel_id` (GroupKFold) with independent test set.
 - Feature engineering (temporal features, slope, min/max, interval coverage) without leakage.
 - LightGBM baseline + evaluation with confusion matrix/F1.
 - Evidence document canonicalization/hashing (separately owned by Corina; schema alignment).
 - Labels from `data/labels.csv` integration.
-- Feeding live `valid_pixel_fraction` values from a real export into the committed CSVs.

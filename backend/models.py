@@ -45,6 +45,7 @@ class Plan(Base):
     treatments: Mapped[list] = mapped_column(JSONB, server_default="[]")
     requested_crop_id: Mapped[str | None] = mapped_column(String(64))
     rotations: Mapped[list] = mapped_column(JSONB)  # generated variants
+    climate_source: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = _now()
 
 
