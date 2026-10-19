@@ -1,0 +1,261 @@
+{
+  "api_version": "v1",
+  "base_path": "/api/v1",
+  "endpoints": {
+    "post_plans": {
+      "method": "POST",
+      "path": "/api/v1/plans",
+      "description": "Submits parcel crop history and desired crop; returns deterministic 3-year rotation options with agronomic rationale and climate source.",
+      "request": {
+        "parcel_id": "parcel_01",
+        "season_id": "season-2024",
+        "history": [
+          {
+            "year": 2022,
+            "crop": "wheat",
+            "treatments": ["herbicide_declared"]
+          },
+          {
+            "year": 2023,
+            "crop": "sunflower",
+            "treatments": []
+          }
+        ],
+        "desired_crop": "maize"
+      },
+      "response_200": {
+        "plan_id": "plan-demo-01",
+        "parcel_id": "parcel_01",
+        "season_id": "season-2024",
+        "recommendations": [
+          {
+            "option_id": "rotation-a",
+            "crops_by_year": [
+              { "year": 2024, "crop": "maize" },
+              { "year": 2025, "crop": "peas" },
+              { "year": 2026, "crop": "wheat" }
+            ],
+            "score": 85,
+            "reasons": [
+              "Alternation across demo crop groups (cereal -> legume -> cereal).",
+              "Peas fix atmospheric nitrogen, reducing synthetic fertilizer demand for subsequent wheat crop."
+            ],
+            "warnings": [
+              "Spring drought risk in southern Oltenia; monitor soil moisture during early maize emergence.",
+              "This is educational decision-support based on rules, not official agronomic certification."
+            ]
+          },
+          {
+            "option_id": "rotation-b",
+            "crops_by_year": [
+              { "year": 2024, "crop": "maize" },
+              { "year": 2025, "crop": "barley" },
+              { "year": 2026, "crop": "soybean" }
+            ],
+            "score": 70,
+            "reasons": [
+              "Includes legume in year 3 to rebuild nitrogen reserves.",
+              "Barley provides earlier ground cover than spring cereals."
+            ],
+            "warnings": [
+              "Two consecutive cereal crops (maize then barley) increases pest pressure."
+            ]
+          }
+        ],
+        "climate_source": "Open-Meteo ERA5-Land (Dolj, Romania)",
+        "rules_version": "rotation-v1",
+        "data_origin": "fixture"
+      }
+    },
+    "post_commitments_prepare": {
+      "method": "POST",
+      "path": "/api/v1/commitments/prepare",
+      "description": "Selects a rotation option, freezes canonical bytes in database, computes SHA-256 plan_hash and on-chain commitment_id.",
+      "request": {
+        "parcel_id": "parcel_01",
+        "season_id": "season-2024",
+        "plan_id": "plan-demo-01",
+        "selected_option_id": "rotation-a",
+        "beneficiary_wallet": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "verification_policy": {
+          "policy_version": "cover-v1",
+          "type": "vegetation_cover",
+          "window_start": "2024-03-01",
+          "window_end": "2024-11-01",
+          "min_observations": 5,
+          "min_valid_pixel_fraction": 0.5,
+          "min_temporal_coverage": 0.5,
+          "min_positive_fraction": 0.8
+        },
+        "reward_wei": "1000000000000000"
+      },
+      "response_200": {
+        "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+        "parcel_id": "parcel_01",
+        "parcel_id_bytes32": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "season_id": "season-2024",
+        "season_id_bytes32": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "plan_hash": "0x705b7a9dd94979bbc79a1af1a17b5aed531a3a3e7b27cb5a5f15635e1a1ee127",
+        "settle_deadline": 1799999999,
+        "beneficiary_wallet": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "reward_wei": "1000000000000000",
+        "state": "prepared",
+        "snapshot_url": "/api/v1/plans/plan-demo-01/snapshot"
+      }
+    },
+    "post_transactions": {
+      "method": "POST",
+      "path": "/api/v1/commitments/{id}/transactions",
+      "description": "Reports an on-chain transaction hash from MetaMask; backend verifies the transaction receipt on RPC before updating commitment state.",
+      "request_register": {
+        "action": "register",
+        "tx_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+      },
+      "response_register_200": {
+        "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+        "tx_hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "action": "register",
+        "status": "confirmed",
+        "block_number": 1024,
+        "state": "registered",
+        "checks_passed": [
+          "receipt_status_success",
+          "contract_address_matches",
+          "method_matches_registerCommitment",
+          "parcel_and_season_match",
+          "plan_hash_matches"
+        ]
+      },
+      "request_fund": {
+        "action": "fund",
+        "tx_hash": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"
+      },
+      "response_fund_200": {
+        "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+        "tx_hash": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+        "action": "fund",
+        "status": "confirmed",
+        "block_number": 1028,
+        "state": "funded",
+        "checks_passed": [
+          "receipt_status_success",
+          "contract_address_matches",
+          "method_matches_fundCommitment",
+          "commitment_id_matches",
+          "msg_value_matches_reward_wei"
+        ]
+      }
+    },
+    "post_verify": {
+      "method": "POST",
+      "path": "/api/v1/commitments/{id}/verify",
+      "description": "Runs satellite verification via Crenguta's ML rules on Copernicus Sentinel-2 observations, builds immutable evidence document, computes SHA-256 evidenceHash, and signs EIP-712 attestation with Dorian's verifier key.",
+      "response_200_nonconform": {
+        "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+        "verdict": "nonconform",
+        "verdict_code": 1,
+        "reason": "13/35 observations above NDVI threshold 0.35 (fraction=0.37, required=0.8)",
+        "evidence_id": "evidence-parcel_01-season-2024",
+        "evidence_hash": "0x89a43f3a2b84f44f4f8d12809d29a76c52769e62f05c759bc90c003ee3e9a16f",
+        "attestation": {
+          "commitmentId": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+          "planHash": "0x705b7a9dd94979bbc79a1af1a17b5aed531a3a3e7b27cb5a5f15635e1a1ee127",
+          "evidenceHash": "0x89a43f3a2b84f44f4f8d12809d29a76c52769e62f05c759bc90c003ee3e9a16f",
+          "verdict": 1,
+          "validUntil": 1799999999
+        },
+        "signature": "0x789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012341b",
+        "model_version": "rule-based-v1",
+        "data_origin": "Copernicus Sentinel-2 L2A",
+        "snapshot_url": "/api/v1/evidence/evidence-parcel_01-season-2024/snapshot"
+      },
+      "response_200_conform": {
+        "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+        "verdict": "conform",
+        "verdict_code": 0,
+        "reason": "7/7 observations above NDVI threshold 0.35 (fraction=1.00, required=0.8)",
+        "evidence_id": "evidence-spring-parcel_01-season-2024",
+        "evidence_hash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "attestation": {
+          "commitmentId": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+          "planHash": "0x705b7a9dd94979bbc79a1af1a17b5aed531a3a3e7b27cb5a5f15635e1a1ee127",
+          "evidenceHash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+          "verdict": 0,
+          "validUntil": 1799999999
+        },
+        "signature": "0x333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333331c",
+        "model_version": "rule-based-v1",
+        "data_origin": "Copernicus Sentinel-2 L2A"
+      }
+    },
+    "get_passports": {
+      "method": "GET",
+      "path": "/api/v1/passports/{id}",
+      "description": "Publicly readable digital passport displayed on the /passport/{id} route and opened by QR code.",
+      "response_200": {
+        "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+        "parcel_display_name": "Field 01 — Dolj, Romania",
+        "region": "Dolj, Romania",
+        "season_id": "season-2024",
+        "practice_type": "Vegetative Soil Cover",
+        "plan_hash": "0x705b7a9dd94979bbc79a1af1a17b5aed531a3a3e7b27cb5a5f15635e1a1ee127",
+        "evidence_hash": "0x89a43f3a2b84f44f4f8d12809d29a76c52769e62f05c759bc90c003ee3e9a16f",
+        "verdict": "nonconform",
+        "contract_state": "negative",
+        "contract_address": "0x0000000000000000000000000000000000000001",
+        "chain_id": 31337,
+        "observations_summary": {
+          "total_observations": 35,
+          "valid_observations": 35,
+          "vegetated_count": 13,
+          "vegetated_fraction": 0.3714
+        },
+        "data_provenance": {
+          "provider": "Copernicus Data Space",
+          "dataset": "Sentinel-2 L2A",
+          "bands": ["B04", "B08", "SCL"],
+          "method": "Cloud-masked NDVI mean"
+        },
+        "tx_hashes": {
+          "register": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+          "fund": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+          "settle": "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
+          "refund": null
+        },
+        "limitations": [
+          "NDVI measures vegetative reflectance proxy only; it cannot detect fertilizer dosage or herbicide absence.",
+          "Demonstration represents a retrospective test using 2024 satellite observations, not a live future guarantee.",
+          "Digital passport is an audit proof, not a certified organic label."
+        ]
+      }
+    }
+  },
+  "eip712_spec": {
+    "domain": {
+      "name": "TerraCycleEscrow",
+      "version": "1",
+      "chainId": 31337,
+      "verifyingContract": "0x0000000000000000000000000000000000000001"
+    },
+    "types": {
+      "EIP712Domain": [
+        { "name": "name", "type": "string" },
+        { "name": "version", "type": "string" },
+        { "name": "chainId", "type": "uint256" },
+        { "name": "verifyingContract", "type": "address" }
+      ],
+      "VerificationResult": [
+        { "name": "commitmentId", "type": "bytes32" },
+        { "name": "planHash", "type": "bytes32" },
+        { "name": "evidenceHash", "type": "bytes32" },
+        { "name": "verdict", "type": "uint8" },
+        { "name": "validUntil", "type": "uint64" }
+      ]
+    },
+    "verdict_codes": {
+      "conform": 0,
+      "nonconform": 1,
+      "inconclusive": 2
+    }
+  }
+}

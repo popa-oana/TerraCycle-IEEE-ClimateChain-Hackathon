@@ -1,0 +1,38 @@
+{
+  "schema_version": "plan-v1",
+  "parcel_id": "parcel_01",
+  "season_id": "season-2024",
+  "beneficiary_address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+  "reward_wei": "1000000000000000",
+  "crop_history": [
+    {
+      "year": 2022,
+      "crop": "wheat",
+      "treatments": ["herbicide_declared"]
+    },
+    {
+      "year": 2023,
+      "crop": "sunflower",
+      "treatments": []
+    }
+  ],
+  "selected_rotation": {
+    "option_id": "rotation-a",
+    "crops": [
+      { "year": 2024, "crop": "maize" },
+      { "year": 2025, "crop": "peas" },
+      { "year": 2026, "crop": "wheat" }
+    ],
+    "rules_version": "rotation-v1"
+  },
+  "verification_policy": {
+    "policy_version": "cover-v1",
+    "type": "vegetation_cover",
+    "window_start": "2024-03-01T00:00:00Z",
+    "window_end": "2024-11-01T00:00:00Z",
+    "minimum_observations": 5,
+    "minimum_valid_pixel_percent": 50,
+    "minimum_temporal_coverage_percent": 50,
+    "minimum_positive_percent": 80
+  }
+}
