@@ -1,0 +1,120 @@
+{
+  "commitment_window": {
+    "convention": "inclusive start, exclusive end, UTC",
+    "end": "2024-11-01T00:00:00Z",
+    "source": "backend/ml/processing_config.json time_interval",
+    "start": "2024-03-01T00:00:00Z"
+  },
+  "feature_names": [
+    "ndvi_mean",
+    "ndvi_min",
+    "ndvi_max",
+    "ndvi_std",
+    "ndvi_range",
+    "ndvi_trend",
+    "observation_count",
+    "observation_span_days",
+    "mean_valid_pixel_fraction",
+    "min_valid_pixel_fraction"
+  ],
+  "feature_units": {
+    "mean_valid_pixel_fraction": "fraction in [0, 1]",
+    "min_valid_pixel_fraction": "fraction in [0, 1]",
+    "ndvi_max": "NDVI units (dimensionless, [-1, 1])",
+    "ndvi_mean": "NDVI units (dimensionless, [-1, 1])",
+    "ndvi_min": "NDVI units (dimensionless, [-1, 1])",
+    "ndvi_range": "NDVI units (ndvi_max - ndvi_min)",
+    "ndvi_std": "NDVI units (population standard deviation, ddof=0)",
+    "ndvi_trend": "NDVI units per elapsed day (OLS slope vs actual dates)",
+    "observation_count": "count of accepted observations",
+    "observation_span_days": "days between first and last accepted acquisition"
+  },
+  "features_version": "satellite-features-v1.0.0",
+  "input_csv": "data/features/observations_clean_4parcels.csv",
+  "input_sha256": "def2bd1096292f04f7b0f7b06d9035277606bf137cd59d87d60c6324f95b21df",
+  "min_observations": 5,
+  "min_valid_pixel_fraction": 0.5,
+  "notes": [
+    "Features are descriptive statistics of real Sentinel-2 observations; they are not labels and no verdict is used as an input feature.",
+    "Missing measurements are excluded, never imputed; no synthetic parcel is created.",
+    "The commitment window is inclusive at the start and exclusive at the end, in UTC.",
+    "Grouping limitation: features are grouped by parcel_id only. With multiple commitment periods the grouping key must become (parcel_id, window_start, window_end) so periods are never combined silently.",
+    "The raw input CSV is opened read-only and is not modified."
+  ],
+  "observation_counts": {
+    "input_observation_count": 214,
+    "invalid_ndvi_excluded": 0,
+    "invalid_timestamp_excluded": 0,
+    "missing_parcel_id_excluded": 0,
+    "out_of_window_excluded": 0,
+    "quality_excluded": 0,
+    "used_observation_count": 214
+  },
+  "output_csv": "data/features/parcel_features_4parcels.csv",
+  "output_sha256": "fbe3bc22772ea1dda9dd3f43cfca4ed82cc0d556183b3fedebac95dd2a8b37fe",
+  "parcel_count": 4,
+  "parcels": [
+    {
+      "distinct_observation_dates": 29,
+      "evidence_sufficiency": "sufficient",
+      "first_observation": "2024-03-23T00:00:00Z",
+      "last_observation": "2024-10-24T00:00:00Z",
+      "meets_min_observations": true,
+      "notes": [],
+      "observation_count": 29,
+      "observation_span_days": 215.0,
+      "parcel_id": "parcel_01",
+      "quality_excluded_count": 0,
+      "quality_metadata_available": true,
+      "trend_defined": true
+    },
+    {
+      "distinct_observation_dates": 63,
+      "evidence_sufficiency": "sufficient",
+      "first_observation": "2024-03-03T00:00:00Z",
+      "last_observation": "2024-10-29T00:00:00Z",
+      "meets_min_observations": true,
+      "notes": [],
+      "observation_count": 63,
+      "observation_span_days": 240.0,
+      "parcel_id": "parcel_02",
+      "quality_excluded_count": 0,
+      "quality_metadata_available": true,
+      "trend_defined": true
+    },
+    {
+      "distinct_observation_dates": 62,
+      "evidence_sufficiency": "sufficient",
+      "first_observation": "2024-03-21T00:00:00Z",
+      "last_observation": "2024-10-29T00:00:00Z",
+      "meets_min_observations": true,
+      "notes": [],
+      "observation_count": 62,
+      "observation_span_days": 222.0,
+      "parcel_id": "parcel_03",
+      "quality_excluded_count": 0,
+      "quality_metadata_available": true,
+      "trend_defined": true
+    },
+    {
+      "distinct_observation_dates": 60,
+      "evidence_sufficiency": "sufficient",
+      "first_observation": "2024-03-23T00:00:00Z",
+      "last_observation": "2024-10-29T00:00:00Z",
+      "meets_min_observations": true,
+      "notes": [],
+      "observation_count": 60,
+      "observation_span_days": 220.0,
+      "parcel_id": "parcel_04",
+      "quality_excluded_count": 0,
+      "quality_metadata_available": true,
+      "trend_defined": true
+    }
+  ],
+  "quality_metadata_available": true,
+  "schema_version": "parcel-features-v1",
+  "std_convention": "population standard deviation (ddof=0)",
+  "trend_definition": "ordinary-least-squares slope of ndvi versus elapsed days since the first distinct acquisition date; null when fewer than two distinct dates exist",
+  "used_observation_count": 214,
+  "warnings": []
+}
