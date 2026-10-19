@@ -48,7 +48,7 @@ SCL masking (retain classes 4, 5)
     +--> valid mask (0/1)                       --> valid_pixel_fraction = mean
     |
     v
-CSV export, merged schema (data/ndvi/parcel_01_2024.csv)
+CSV export, merged schema (data/ndvi/parcel_01_2024_quality.csv)
     parcel_id, acquired_at, scene_id, ndvi_mean, valid_pixel_fraction
     |
     v
@@ -101,18 +101,24 @@ pip install pytest
 ### Run Tests
 
 ```powershell
-# Original test script (6 synthetic scenarios)
+# Original test script (synthetic scenarios)
 .\.venv\Scripts\python.exe tests\test_rules.py
 
-# Comprehensive rules suite (44 tests)
+# Comprehensive rules suite
 .\.venv\Scripts\python.exe -m pytest tests\test_rules_pytest.py -v
 
-# Day 4 quality / coverage / export-merge suite (42 tests)
+# Day 4 quality / coverage suite
 .\.venv\Scripts\python.exe -m pytest tests\test_quality.py -v
 
-# Everything (86 tests)
-.\.venv\Scripts\python.exe -m pytest tests\ -q
+# Task 3A pixel-coverage + processing-graph suite
+.\.venv\Scripts\python.exe -m pytest tests\test_pixel_coverage.py -v
+
+# All ML/quality suites (151 tests)
+.\.venv\Scripts\python.exe -m pytest tests\test_rules.py tests\test_rules_pytest.py tests\test_quality.py tests\test_pixel_coverage.py -q
 ```
+
+> `tests/test_hashing.py` belongs to the backend hashing module and needs the
+> `eth_abi` dependency, which is not installed in the ML virtual environment.
 
 ### Export New Satellite Data (requires Copernicus authentication)
 
@@ -120,6 +126,7 @@ pip install pytest
 .\.venv\Scripts\python.exe scripts\export_ndvi.py            # non-destructive (writes _quality.csv if target exists)
 .\.venv\Scripts\python.exe scripts\export_ndvi.py --force    # overwrite target CSV
 .\.venv\Scripts\python.exe scripts\export_ndvi.py --dry-run  # build the openEO graph without running a job
+.\.venv\Scripts\python.exe scripts\export_ndvi.py --reuse-ndvi data/ndvi/parcel_01_2024.csv  # coverage jobs only
 ```
 
 The export reads all parameters from `backend/ml/processing_config.json`, computes
@@ -190,9 +197,10 @@ observations in the same interval count once.
 > classification**, not evidence-supported compliance. A `conform` verdict is
 > only meaningful together with assessed evidence quality
 > (`evidence_quality: "assessed"`, i.e. real `valid_pixel_fraction`
-> measurements). While the committed real CSVs lack that column,
-> `evidence_quality` is `"unknown"` and the verdict — whatever it is — must
-> not be presented as settlement-ready verification.
+> measurements). The current `_quality.csv` exports provide such measurements,
+> so the full-season result is `assessed` (and still `nonconform`). The verdict
+> remains experimental: the thresholds are working hypotheses, not agronomic
+> criteria.
 
 ### Verdict Mapping (EIP-712/Solidity)
 
@@ -204,28 +212,25 @@ observations in the same interval count once.
 
 ---
 
-## Real Satellite Results (June–October 2024)
+## Real Satellite Results (March–October 2024)
 
 The following are **actual observations from Copernicus Sentinel-2 L2A**, exported via openEO for parcel_01 (Dolj region, Romania):
 
-- **Source file**: `data/ndvi/parcel_01_2024.csv`
-- **Total rows**: 48 (of which 13 had missing NDVI due to cloud masking)
-- **Valid observations**: 35
+- **Source file**: `data/ndvi/parcel_01_2024_quality.csv` (live export executed 2026-10-19; NDVI reused from `parcel_01_2024.csv`, pixel coverage from two live coverage batch jobs)
+- **Total rows**: 48 (of which 13 are clouded acquisitions: NDVI undefined, `valid_pixel_fraction` 0.0)
+- **Quality-valid observations**: 29 (6 further observations excluded by Rule C, fraction < 0.50)
 - **Period**: 2024-03-03 to 2024-10-29
-- **NDVI range**: 0.1053 to 0.9200
-- **NDVI mean**: 0.4044
-- **NDVI median**: 0.2157
-- **Temporal coverage**: 0.92 (23/25 intervals of 10 days over 2024-03-01..2024-11-01)
-- **Evidence quality**: `unknown` — this CSV predates the `valid_pixel_fraction`
-  column, so Rule C could not be applied (see Limitations).
+- **NDVI range** (valid observations): 0.1053 to 0.9200
+- **Temporal coverage**: 0.76 (19/25 intervals of 10 days over 2024-03-01..2024-11-01)
+- **Evidence quality**: `assessed` — real `valid_pixel_fraction` measurements, Rule C enforced
 
 ### Provisional Verdict
 
 - **Verdict**: `nonconform` (code 1)
-- **Reason**: 13/35 observations above NDVI threshold 0.35 (fraction=0.37, required=0.80)
+- **Reason**: 10/29 quality-valid observations above NDVI threshold 0.35 (fraction=0.34, required=0.80)
 - **Validation status**: `experimental_only`
 
-The data shows high NDVI in March–May (vegetation season) followed by a sharp decline from June onwards, consistent with harvest or crop change. The commitment window used for this run comes from `processing_config.json` (`2024-03-01` .. `2024-11-01`, inclusive start / exclusive end, UTC) and covers the whole CSV, so commitment-window filtering excludes no observation here; the post-June decline is what explains why most observations fall below the vegetation threshold.
+The data shows high NDVI in March–May (vegetation season) followed by a sharp decline from June onwards, consistent with harvest or crop change. The commitment window used for this run comes from `processing_config.json` (`2024-03-01` .. `2024-11-01`, inclusive start / exclusive end, UTC) and covers the whole CSV, so commitment-window filtering excludes no observation here; the post-June decline is what explains why most observations fall below the vegetation threshold. The verdict is driven by genuine vegetation dynamics, not by data gaps: 13 clouded and 6 low-coverage acquisitions were excluded by the structural and pixel-quality rules before classification.
 
 ---
 
@@ -234,14 +239,15 @@ The data shows high NDVI in March–May (vegetation season) followed by a sharp 
 > [!WARNING]
 > The following limitations apply to ALL outputs of this module.
 
-1. **Pixel validity fraction** (`valid_pixel_fraction`) support is implemented in the
-   export pipeline (`scripts/export_ndvi.py`) and in the verifier, but the real CSVs
-   currently committed under `data/ndvi/` predate the change and do not contain the
-   column. Live values require a Copernicus-authenticated re-export, which has not been
-   run. Until then, the verifier reports `evidence_quality: "unknown"`, does not apply
-   Rule C, and adds an explicit warning that the result is experimental and must not
-   be treated as settlement-ready verification.
-   The merge logic is covered by offline tests using mocked openEO outputs.
+1. **Pixel validity fraction** (`valid_pixel_fraction`) is now measured on real
+   data: the live exports completed on 2026-10-19 produced
+   `data/ndvi/parcel_01_2024_quality.csv` (48 acquisitions, full season) and
+   `data/ndvi/parcel_01_june_2024_quality.csv` (6 acquisitions, June test
+   window). The verifier prefers these `_quality` exports, applies Rule C to
+   the real measurements and reports `evidence_quality: "assessed"`. The older
+   NDVI-only exports remain untouched as raw data; when such a file is used
+   instead, the verifier reports `evidence_quality: "unknown"`, does not apply
+   Rule C, and warns that the result is experimental and not settlement-ready.
 
 2. **Commitment-window filtering** is applied whenever the policy supplies both
    `window_start` and `window_end`: only observations with
@@ -284,9 +290,10 @@ The data shows high NDVI in March–May (vegetation season) followed by a sharp 
 | 21–22 | Real data for all demo scenarios, frozen model/policy |
 | 23 | `docs/model.md` and `docs/limitations.md`; feature freeze |
 
-> Day 16 status: quality module, processing config, temporal coverage and the
-> integrated rules are implemented and tested. The only pending item is a live
-> Copernicus re-export to populate real `valid_pixel_fraction` values.
+> Day 16 status: quality module, processing config, temporal coverage, the
+> integrated rules and the live Copernicus exports (June test window + full
+> season) are implemented and tested. Real `valid_pixel_fraction` values are
+> now populated in the `_quality.csv` exports and enforced by the verifier.
 
 ---
 
@@ -340,23 +347,23 @@ Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
         ...
     ],
     "quality": {
-        "valid_count": 35,
+        "valid_count": 29,
         "total_rows": 48,
-        "excluded_count": 13,
+        "excluded_count": 19,
         "structural_excluded_count": 13,
-        "quality_excluded_count": 0,
-        "vegetated_count": 13,
-        "vegetated_fraction": 0.3714,
-        "quality_metadata_available": False,
+        "quality_excluded_count": 6,
+        "vegetated_count": 10,
+        "vegetated_fraction": 0.3448,
+        "quality_metadata_available": True,
         "evidence_quality": "assessed" | "unknown",
         "min_valid_pixel_fraction": 0.5,
-        "temporal_coverage": 0.92,
-        "covered_intervals": 23,
+        "temporal_coverage": 0.76,
+        "covered_intervals": 19,
         "total_intervals": 25,
         "interval_length_days": 10,
         "inconclusive_reason": null | "INSUFFICIENT_OBSERVATIONS"
                             | "INSUFFICIENT_TEMPORAL_COVERAGE" | "INVALID_INPUT",
-        "warnings": ["valid_pixel_fraction missing; pixel-quality rule (Rule C) not applied"]
+        "warnings": []
     },
     "model": {
         "model_version": "rule-based-v1",
@@ -377,7 +384,7 @@ Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
         "provider": "Copernicus Data Space",
         "dataset": "Sentinel-2 L2A",
         "method": "cloud-masked NDVI (SCL classes 4,5)",
-        "csv_file": "data/ndvi/parcel_01_2024.csv"
+        "csv_file": "data/ndvi/parcel_01_2024_quality.csv"
     }
 }
 ```
@@ -402,10 +409,11 @@ Rule C is applied only when the CSV contains a `valid_pixel_fraction` column.
 
 ### What Remains Provisional
 
-- Live `valid_pixel_fraction` values (pipeline implemented; re-export pending auth)
 - Rule-based only (no ML model)
 - Thresholds are experimental working hypotheses
-- Evidence quality can be `"unknown"` when quality metadata is missing (and in that case the result must not be treated as settlement-ready verification)
+- Evidence quality can still be `"unknown"` when an NDVI-only CSV is used (in
+  that case the result must not be treated as settlement-ready verification);
+  the current committed `_quality.csv` exports are `"assessed"`
 
 ### Usage Example
 

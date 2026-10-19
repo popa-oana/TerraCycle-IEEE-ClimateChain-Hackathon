@@ -341,9 +341,13 @@ def verify_parcel(
         }
 
     # --- Locate CSV file ---
-    # Prefer full-season, then June-only
+    # Prefer the quality-enriched export (carries real valid_pixel_fraction
+    # measurements, so Rule C is enforced), then the NDVI-only export;
+    # full-season before June-only.
     csv_candidates = [
+        evidence_dir / f"{parcel_id}_2024_quality.csv",
         evidence_dir / f"{parcel_id}_2024.csv",
+        evidence_dir / f"{parcel_id}_june_2024_quality.csv",
         evidence_dir / f"{parcel_id}_june_2024.csv",
         evidence_dir / f"{parcel_id}_clean.csv",
     ]
@@ -397,6 +401,11 @@ def verify_parcel(
     # --- Validate and normalize columns ---
     if "band_unnamed" in df.columns:
         df = df.rename(columns={"band_unnamed": "ndvi_mean"})
+    # The standard merged export produced by scripts/export_ndvi.py
+    # (parcel_id, acquired_at, scene_id, ndvi_mean, valid_pixel_fraction)
+    # names the timestamp column `acquired_at`; accept it as an alias.
+    if "date" not in df.columns and "acquired_at" in df.columns:
+        df = df.rename(columns={"acquired_at": "date"})
 
     required_cols = {"date", "ndvi_mean"}
     missing_cols = required_cols - set(df.columns)
@@ -435,12 +444,24 @@ def verify_parcel(
     # Filter NDVI to valid range [-1, 1]
     df = df[df["ndvi_mean"].between(-1, 1)].copy()
 
-    # Sort chronologically
     df = df.sort_values("date").reset_index(drop=True)
 
-    # Remove duplicate dates (keep first)
+    # Track detailed structural exclusions
+    structural_invalid_data_count = 0  # missing/unparseable dates/ndvi or out of range
+    structural_duplicates_removed = 0
+    duplicates_removed = 0
+    rows_before_dropna = len(df)
+    df = df.dropna(subset=["date", "ndvi_mean"])
+    structural_invalid_data_count += rows_before_dropna - len(df)
+    # between
+    rows_before_range = len(df)
+    df = df[df["ndvi_mean"].between(-1, 1)].copy()
+    structural_invalid_data_count += rows_before_range - len(df)
+    # duplicates
+    rows_before_dups = len(df)
     df = df.drop_duplicates(subset=["date"], keep="first").reset_index(drop=True)
-
+    structural_duplicates_removed = rows_before_dups - len(df)
+    duplicates_removed = structural_duplicates_removed
     structural_excluded = total_rows - len(df)
 
     # --- Policy parameters ---
@@ -509,10 +530,11 @@ def verify_parcel(
             is_valid, reason = evaluate_observation_quality(
                 row_vpf, min_valid_pixel_fraction=min_valid_pixel_fraction
             )
+            if not is_valid:
+                quality_excluded += 1
         else:
             # No quality metadata: do not reject here, but flag evidence quality.
             is_valid, reason = True, None
-
         obs: dict[str, Any] = {
             "acquired_at": row["date"].strftime("%Y-%m-%dT%H:%M:%SZ"),
             "ndvi_mean": round(float(row["ndvi_mean"]), 6),
@@ -522,7 +544,6 @@ def verify_parcel(
             obs["valid_pixel_fraction"] = round(float(row_vpf), 4)
         if not is_valid:
             obs["quality_reason"] = reason
-            quality_excluded += 1
         observations_list.append(obs)
 
         if is_valid:
