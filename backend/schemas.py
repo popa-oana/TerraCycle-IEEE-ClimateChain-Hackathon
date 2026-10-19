@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class HistoryItem(BaseModel):
@@ -100,6 +100,49 @@ class PassportResponse(BaseModel):
     data_provenance: DataProvenance | None = None
     tx_hashes: TxHashes | None = None
     limitations: list[str] = []
+
+
+class Attestation(BaseModel):
+    commitmentId: str = Field(pattern=r"^0x[0-9a-f]{64}$")
+    planHash: str = Field(pattern=r"^0x[0-9a-f]{64}$")
+    evidenceHash: str = Field(pattern=r"^0x[0-9a-f]{64}$")
+    verdict: int = Field(ge=0, le=2)
+    validUntil: int = Field(gt=0)
+
+
+class EvidenceDocument(BaseModel):
+    commitment_id: str = Field(pattern=r"^0x[0-9a-f]{64}$")
+    evidence_id: str = Field(min_length=1, max_length=64)
+    verdict: str = Field(pattern=r"^(conform|nonconform|inconclusive)$")
+    verdict_code: int = Field(ge=0, le=2)
+    reason_codes: list[str] = []
+    model_version: str = Field(min_length=1, max_length=64)
+    policy_version: str = Field(min_length=1, max_length=64)
+    parcel_id: str
+    season_id: str
+    observations: ObservationsSummary | None = None
+    data_provenance: DataProvenance | None = None
+    valid_until: int = Field(gt=0)
+
+    @model_validator(mode="after")
+    def check_verdict_mapping(self):
+        mapping = {"conform": 0, "nonconform": 1, "inconclusive": 2}
+        expected = mapping.get(self.verdict)
+        if expected is None or self.verdict_code != expected:
+            raise ValueError(f"verdict '{self.verdict}' does not match verdict_code {self.verdict_code}")
+        return self
+
+
+class VerifyResponse(BaseModel):
+    commitment_id: str
+    evidence_id: str
+    evidence_hash: str
+    verdict: str
+    verdict_code: int
+    attestation: Attestation
+    signature: str | None = None
+    reason_codes: list[str] = []
+    snapshot_url: str
 
 
 class ErrorResponse(BaseModel):
