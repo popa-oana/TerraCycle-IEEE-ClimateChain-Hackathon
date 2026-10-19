@@ -1,0 +1,70 @@
+:root {
+  --navy-950: #101E34;
+  --navy-800: #20334F;
+  --red-700: #8E2230;
+  --red-600: #A8313E;
+  --red-100: #F5E9E9;
+  --paper: #F8F7F4;
+  --white: #FFFFFF;
+  --ink: #17191C;
+  --muted: #5D6672;
+  --line: #DDE1E3;
+  --green-700: #246457;
+  --amber-700: #8A6222;
+
+  --container: 1224px;
+  --rail: 228px;
+  --header-height: 72px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-soft: 0 8px 26px rgba(16, 30, 52, 0.055);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  --font-body: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+  --font-display: 'Newsreader', Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--red-600);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
