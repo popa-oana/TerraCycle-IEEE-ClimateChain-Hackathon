@@ -1,0 +1,71 @@
+{
+  "policy": {
+    "window_start": "2024-03-01",
+    "window_end": "2024-11-01",
+    "ndvi_threshold": 0.35,
+    "required_fraction": 0.8,
+    "min_observations": 5,
+    "min_valid_pixel_fraction": 0.5,
+    "min_temporal_coverage": 0.5,
+    "temporal_coverage_interval_days": 10
+  },
+  "evidence_directory": "data/ndvi",
+  "parcels": {
+    "parcel_01": {
+      "verdict": "nonconform",
+      "verdict_code": 1,
+      "reason_code": "RULE_BASED_DECISION",
+      "reason": "10/29 observations above NDVI threshold 0.35 (fraction=0.34, required=0.8)",
+      "valid_observations": 29,
+      "total_rows": 48,
+      "temporal_coverage": 0.76,
+      "covered_intervals": 19,
+      "total_intervals": 25,
+      "vegetated_count": 10,
+      "vegetated_fraction": 0.3448,
+      "quality_metadata_available": true
+    },
+    "parcel_02": {
+      "verdict": "nonconform",
+      "verdict_code": 1,
+      "reason_code": "RULE_BASED_DECISION",
+      "reason": "30/63 observations above NDVI threshold 0.35 (fraction=0.48, required=0.8)",
+      "valid_observations": 63,
+      "total_rows": 97,
+      "temporal_coverage": 1.0,
+      "covered_intervals": 25,
+      "total_intervals": 25,
+      "vegetated_count": 30,
+      "vegetated_fraction": 0.4762,
+      "quality_metadata_available": true
+    },
+    "parcel_03": {
+      "verdict": "nonconform",
+      "verdict_code": 1,
+      "reason_code": "RULE_BASED_DECISION",
+      "reason": "31/62 observations above NDVI threshold 0.35 (fraction=0.50, required=0.8)",
+      "valid_observations": 62,
+      "total_rows": 97,
+      "temporal_coverage": 0.92,
+      "covered_intervals": 23,
+      "total_intervals": 25,
+      "vegetated_count": 31,
+      "vegetated_fraction": 0.5,
+      "quality_metadata_available": true
+    },
+    "parcel_04": {
+      "verdict": "nonconform",
+      "verdict_code": 1,
+      "reason_code": "RULE_BASED_DECISION",
+      "reason": "23/60 observations above NDVI threshold 0.35 (fraction=0.38, required=0.8)",
+      "valid_observations": 60,
+      "total_rows": 97,
+      "temporal_coverage": 0.92,
+      "covered_intervals": 23,
+      "total_intervals": 25,
+      "vegetated_count": 23,
+      "vegetated_fraction": 0.3833,
+      "quality_metadata_available": true
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "parcel_id": "parcel_03",
+  "parcel_geojson": "data/parcels/parcel_03.geojson",
+  "time_interval": {
+    "start": "2024-03-01",
+    "end": "2024-11-01",
+    "description": "Full season (March-October 2024)"
+  },
+  "collection": "SENTINEL2_L2A",
+  "output_csv": "data/ndvi/parcel_03_2024_quality.csv",
+  "bands": [
+    "B04",
+    "B08",
+    "SCL"
+  ],
+  "ndvi_formula": "(B08 - B04) / (B08 + B04)",
+  "scl_accepted_classes": [
+    4,
+    5
+  ],
+  "scl_eligible_classes": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "scl_policy": {
+    "accepted": [
+      4,
+      5
+    ],
+    "accepted_description": "4: Vegetation, 5: Not vegetated (bare soil visible)",
+    "excluded_description": "Clouds, shadows, water, defective pixels, etc. (all other SCL classes)",
+    "eligible_description": "Coverage denominator: SCL classes 1..11 carry an actual scene classification. Class 0 (NO DATA) and missing/NaN pixels carry no observation and are excluded from the denominator entirely. Cloudy/shadowed pixels stay eligible but count as not valid."
+  },
+  "coverage_policy": {
+    "definition": "valid_pixel_fraction = mean(valid_flags) / mean(eligible_flags) over the parcel, where valid_flags = 1 for SCL in [4,5] and eligible_flags = 1 for SCL in [1..11]",
+    "grid": "Numerator and denominator are both computed from the SCL band alone (20 m native resolution) on the same grid and aggregated over the same parcel geometry, so the ratio of means equals the ratio of pixel counts.",
+    "ndvi_grid": "B04/B08 are 10 m native. The SCL-derived cloud mask is resampled onto the NDVI grid with nearest-neighbour (resample_cube_spatial, method=near) before masking; no arithmetic mixes 10 m and 20 m values.",
+    "zero_denominator": "If the eligible mean is 0 or missing the fraction is null (never fabricated)."
+  },
+  "min_valid_pixel_fraction": 0.5,
+  "temporal_coverage": {
+    "interval_length_days": 10,
+    "min_temporal_coverage": 0.5,
+    "min_observations_per_interval": 1
+  },
+  "min_valid_observations": 5,
+  "processing_version": "day4-v1.0.0"
+}
