@@ -1,0 +1,147 @@
+{
+  "process_graph": {
+    "loadcollection1": {
+      "process_id": "load_collection",
+      "arguments": {
+        "bands": [
+          "B04",
+          "B08",
+          "SCL"
+        ],
+        "id": "SENTINEL2_L2A",
+        "spatial_extent": null,
+        "temporal_extent": [
+          "2024-06-01",
+          "2024-07-01"
+        ]
+      }
+    },
+    "reducedimension1": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "loadcollection1"
+        },
+        "dimension": "bands",
+        "reducer": {
+          "process_graph": {
+            "arrayelement1": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "index": 2
+              }
+            },
+            "eq1": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 4
+              }
+            },
+            "eq2": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_node": "arrayelement1"
+                },
+                "y": 5
+              }
+            },
+            "or1": {
+              "process_id": "or",
+              "arguments": {
+                "x": {
+                  "from_node": "eq1"
+                },
+                "y": {
+                  "from_node": "eq2"
+                }
+              },
+              "result": true
+            }
+          }
+        }
+      }
+    },
+    "convertdatatype1": {
+      "process_id": "convert_data_type",
+      "arguments": {
+        "data": {
+          "from_node": "reducedimension1"
+        },
+        "data_type": "float32"
+      }
+    },
+    "aggregatespatial1": {
+      "process_id": "aggregate_spatial",
+      "arguments": {
+        "data": {
+          "from_node": "convertdatatype1"
+        },
+        "geometries": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": {
+                "id": "parcel_01",
+                "source": "manual_digitization",
+                "description": "Parcela demonstrativa TerraCycle Proof"
+              },
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      23.506627,
+                      43.948277
+                    ],
+                    [
+                      23.519075,
+                      43.94976
+                    ],
+                    [
+                      23.538736,
+                      43.954518
+                    ],
+                    [
+                      23.541827,
+                      43.935917
+                    ],
+                    [
+                      23.512207,
+                      43.933691
+                    ],
+                    [
+                      23.506627,
+                      43.948277
+                    ]
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "reducer": {
+          "process_graph": {
+            "mean1": {
+              "process_id": "mean",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          }
+        }
+      },
+      "result": true
+    }
+  }
+}
