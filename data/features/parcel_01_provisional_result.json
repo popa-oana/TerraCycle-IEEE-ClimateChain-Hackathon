@@ -36,7 +36,8 @@
     "total_intervals": 25,
     "interval_length_days": 10,
     "warnings": [
-      "valid_pixel_fraction missing; pixel-quality rule (Rule C) not applied"
+      "valid_pixel_fraction missing; pixel-quality rule (Rule C) not applied",
+      "evidence_quality=unknown (no real valid_pixel_fraction measurements); result is experimental and must NOT be treated as settlement-ready verification"
     ]
   },
   "validation_status": "experimental_only",
@@ -49,7 +50,7 @@
     "NDVI alone cannot demonstrate absence of herbicides, compliance with fertilization rules, or organic certification.",
     "This provisional result must NOT authorize blockchain settlement or on-chain payments."
   ],
-  "generated_at": "2026-10-14T21:30:32Z",
+  "generated_at": "2026-10-19T12:41:01Z",
   "model_version": "rule-based-v1",
   "data_source": {
     "provider": "Copernicus Data Space",

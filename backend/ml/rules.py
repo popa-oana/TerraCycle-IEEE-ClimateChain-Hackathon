@@ -76,6 +76,81 @@ def _no_evidence_quality(
     }
 
 
+def _resolve_commitment_window(
+    policy: dict[str, Any],
+) -> tuple[Optional[Any], Optional[Any], Optional[str]]:
+    """
+    Validate and parse the commitment window of a verification policy.
+
+    Returns `(window_start, window_end, error_message)`:
+
+    - `(None, None, None)` — no window keys supplied at all: the caller may
+      fall back to the legacy unrestricted mode, which the integration
+      contract (TerraCycle_Ghid_Integrare.md §7, backend/ml/README.md) permits
+      and which must stay flagged as experimental.
+    - `(None, None, error)` — a window WAS explicitly supplied but is invalid
+      (missing one boundary, unparseable date, or inverted range). The caller
+      MUST return `inconclusive` with `reason_code: "INVALID_INPUT"` and must
+      NOT fall back to evaluating the whole dataset.
+    - `(window_start, window_end, None)` — valid window.
+
+    Boundary convention: **inclusive start, exclusive end**, compared in UTC,
+    i.e. `window_start <= acquired_at < window_end`, matching
+    `quality.compute_temporal_coverage()`.
+
+    `INVALID_INPUT` is not a new code: it is part of the project's shared
+    error-code list (TerraCycle_Ghid_Integrare.md §8).
+    """
+    window_start_raw = policy.get("window_start")
+    window_end_raw = policy.get("window_end")
+
+    has_start = bool(window_start_raw)
+    has_end = bool(window_end_raw)
+
+    # No window at all -> legacy unrestricted mode (contract-permitted).
+    if not has_start and not has_end:
+        return None, None, None
+
+    # Partially specified window -> never interpreted as "unrestricted".
+    if not has_start or not has_end:
+        missing = "window_end" if not has_start else "window_start"
+        return (
+            None,
+            None,
+            "Invalid commitment window: only one boundary was supplied "
+            f"(window_start={window_start_raw!r}, window_end={window_end_raw!r}); "
+            f"both window_start and window_end are required — {missing} is missing",
+        )
+
+    try:
+        start = pd.to_datetime(window_start_raw, utc=True)
+        end = pd.to_datetime(window_end_raw, utc=True)
+    except Exception:
+        start = None
+        end = None
+
+    # Unparseable date(s) -> invalid window, never a silent full-dataset run.
+    if start is None or end is None or pd.isna(start) or pd.isna(end):
+        return (
+            None,
+            None,
+            "Invalid commitment window: could not parse as UTC dates "
+            f"(window_start={window_start_raw!r}, window_end={window_end_raw!r})",
+        )
+
+    # Inverted or empty range -> invalid window.
+    if end <= start:
+        return (
+            None,
+            None,
+            "Invalid commitment window: window_end "
+            f"({end.isoformat()}) must be strictly after window_start "
+            f"({start.isoformat()})",
+        )
+
+    return start, end, None
+
+
 def verify_vegetation(
     observations: list[Optional[float]],
     min_observations: int = 5,
@@ -167,6 +242,37 @@ def verify_parcel(
     applies the provisional rule-based verifier, and returns
     the verdict with observations and quality metadata.
 
+    Commitment-window filtering
+    ---------------------------
+    When the policy provides BOTH `window_start` and `window_end`, only
+    observations whose acquisition timestamp falls inside the window are
+    evaluated. Filtering happens BEFORE the vegetation classification, BEFORE
+    counting valid observations, BEFORE the temporal-coverage computation and
+    BEFORE the evidence (`observations`) list is built, so an out-of-window
+    row can never influence the verdict.
+
+    Boundary convention: **inclusive start, exclusive end**, compared in UTC,
+    i.e. `window_start <= acquired_at < window_end`. This matches the interval
+    convention already used by `quality.compute_temporal_coverage()`
+    (`interval_start <= d < interval_end`) and the meaning of `window_end` in
+    `processing_config.json` (`2024-11-01` = end of season, not an instant).
+
+    If only one bound is given, a bound cannot be parsed as a UTC date, or
+    `window_end <= window_start`, the supplied window is INVALID: the function
+    fails safely and returns `inconclusive` with `reason_code: "INVALID_INPUT"`
+    (an existing code from the shared list in TerraCycle_Ghid_Integrare.md §8).
+    It never silently falls back to evaluating the whole dataset when a window
+    was explicitly requested.
+
+    Only when NO window keys are supplied at all does the verifier fall back to
+    the legacy unrestricted mode permitted by the integration contract. That
+    mode evaluates every row of the CSV, emits an explicit warning and remains
+    experimental: it must not be used to authorize settlement. Likewise, when
+    `evidence_quality` is `"unknown"` (no real `valid_pixel_fraction`
+    measurements), a warning states that the result is not settlement-ready.
+    If a valid window contains no observations at all, the verdict is
+    `inconclusive` (`reason_code: INSUFFICIENT_OBSERVATIONS`).
+
     This function does NOT sign or hash the result.
     Corina's backend handles canonical serialization and SHA-256.
 
@@ -182,10 +288,17 @@ def verify_parcel(
             - min_valid_pixel_fraction (float, default 0.50)  [Rule C]
             - min_temporal_coverage (float, default 0.50)     [Rule B]
             - temporal_coverage_interval_days (int, default 10) [Rule B]
-            - window_start (ISO date/str, optional)          [Rule B]
-            - window_end (ISO date/str, optional, exclusive) [Rule B]
-        Rule B is only enforced when both window_start and window_end are given.
-        Rule C is only enforced when the CSV contains a valid_pixel_fraction column.
+            - window_start (ISO date/str, optional, inclusive) [Rule B + filter]
+            - window_end (ISO date/str, optional, exclusive)   [Rule B + filter]
+        Rule B and the commitment-window filter are only applied when both
+        window_start and window_end are given and parse as UTC dates.
+        An explicitly supplied but INVALID window (one boundary missing,
+        unparseable date, or window_end <= window_start) makes the verdict
+        `inconclusive` with `reason_code: "INVALID_INPUT"` instead of being
+        ignored. Absent window keys (both) select the legacy unrestricted
+        mode documented above.
+        Rule C is only enforced when the CSV contains a valid_pixel_fraction
+        column.
     evidence_directory : str
         Path to the directory containing NDVI CSV files.
 
@@ -202,6 +315,30 @@ def verify_parcel(
         source: dict with data provenance
     """
     evidence_dir = Path(evidence_directory)
+
+    # --- Validate the commitment window BEFORE touching any data ---
+    # An explicitly supplied but invalid window must fail safely as
+    # `inconclusive` (INVALID_INPUT) and must never silently degrade into an
+    # unrestricted evaluation of the whole dataset.
+    window_start, window_end, window_error = _resolve_commitment_window(policy)
+    if window_error is not None:
+        return {
+            "verdict": VERDICTS["INCONCLUSIVE"],
+            "verdict_code": VERDICT_CODES["inconclusive"],
+            "reason_code": "INVALID_INPUT",
+            "reason": window_error,
+            "observations": [],
+            "quality": _no_evidence_quality("INVALID_INPUT"),
+            "model": {
+                "model_version": "rule-based-v1",
+                "source": "RULE_BASED",
+            },
+            "source": {
+                "provider": "Copernicus Data Space",
+                "dataset": "Sentinel-2 L2A",
+                "csv_file": None,
+            },
+        }
 
     # --- Locate CSV file ---
     # Prefer full-season, then June-only
@@ -316,10 +453,21 @@ def verify_parcel(
     window_start_raw = policy.get("window_start")
     window_end_raw = policy.get("window_end")
 
-    # --- Rule C: pixel quality filtering ---
+    # --- Commitment-window state ---
+    # window_start / window_end were validated at function entry by
+    # _resolve_commitment_window(): they are either a valid UTC window
+    # (inclusive start, exclusive end) or both None (legacy mode — no window
+    # keys in the policy). An invalid window already returned INVALID_INPUT,
+    # so reaching here with a half-specified window is impossible.
+    window_filter_applied = False
+    out_of_window_excluded = 0
+
+    # --- Rule C: pixel quality detection (evaluated on the whole CSV) ---
     # The rule is only applied when valid_pixel_fraction is present. When it is
     # missing entirely, observations are NOT treated as fully validated evidence:
     # their evidence quality is reported as "unknown" (see quality metadata below).
+    # Detection happens before the window filter so that an empty commitment
+    # window does not turn existing quality metadata into "unknown".
     has_quality_col = "valid_pixel_fraction" in df.columns
     if has_quality_col:
         df["valid_pixel_fraction"] = pd.to_numeric(
@@ -330,6 +478,24 @@ def verify_parcel(
         )
     else:
         quality_metadata_available = False
+
+    # --- Commitment-window filtering ---
+    # Applied BEFORE the vegetation classification, BEFORE counting valid
+    # observations, BEFORE the temporal-coverage computation and BEFORE the
+    # evidence (observations) list is built, so that only observations inside
+    # the commitment period can influence the verdict.
+    #
+    # Boundary convention (validated at function entry): inclusive start,
+    # exclusive end, in UTC: window_start <= acquired_at < window_end.
+    # Rows with missing/unparseable timestamps were already dropped by the
+    # structural cleaning step, so they can never be silently treated as
+    # in-window observations.
+    if window_start is not None and window_end is not None:
+        rows_before_window = len(df)
+        in_window_mask = (df["date"] >= window_start) & (df["date"] < window_end)
+        df = df[in_window_mask].reset_index(drop=True)
+        out_of_window_excluded = rows_before_window - len(df)
+        window_filter_applied = True
 
     # --- Build observations list and apply Rule C ---
     observations_list: list[dict[str, Any]] = []
@@ -364,11 +530,11 @@ def verify_parcel(
             valid_dates.append(row["date"].to_pydatetime())
 
     # --- Rule B: temporal coverage (only when a window is specified) ---
+    # valid_dates only contains observations that already survived the
+    # commitment-window filter, so coverage is computed on in-window data only.
     temporal: Optional[dict[str, Any]] = None
-    if window_start_raw and window_end_raw:
+    if window_start is not None and window_end is not None:
         try:
-            window_start = pd.to_datetime(window_start_raw, utc=True).to_pydatetime()
-            window_end = pd.to_datetime(window_end_raw, utc=True).to_pydatetime()
             in_window = [
                 d for d in valid_dates if window_start <= d < window_end
             ]
@@ -382,12 +548,39 @@ def verify_parcel(
             temporal = None
 
     # --- Apply experimental vegetation classification on quality-valid data ---
-    result = verify_vegetation(
-        observations=valid_ndvi_values,
-        min_observations=min_observations,
-        ndvi_threshold=ndvi_threshold,
-        required_fraction=required_fraction,
-    )
+    empty_window = window_filter_applied and len(df) == 0
+    if empty_window:
+        # No observation falls inside the commitment window: the verdict must
+        # be `inconclusive` (never conform/nonconform), regardless of the
+        # min_observations policy.
+        empty_reason = (
+            "No observations inside the commitment window "
+            f"{window_start_raw} <= acquired_at < {window_end_raw}"
+        )
+        if out_of_window_excluded:
+            empty_reason += (
+                f"; {out_of_window_excluded} observation(s) in the CSV fall "
+                f"outside the window"
+            )
+        result = {
+            "verdict": VERDICTS["INCONCLUSIVE"],
+            "reason": empty_reason,
+            "valid_observations": 0,
+            "vegetated_count": 0,
+            "vegetated_fraction": 0.0,
+            "thresholds": {
+                "ndvi_threshold": ndvi_threshold,
+                "required_fraction": required_fraction,
+                "min_observations": min_observations,
+            },
+        }
+    else:
+        result = verify_vegetation(
+            observations=valid_ndvi_values,
+            min_observations=min_observations,
+            ndvi_threshold=ndvi_threshold,
+            required_fraction=required_fraction,
+        )
 
     verdict = result["verdict"]
     if verdict == VERDICTS["INCONCLUSIVE"]:
@@ -417,9 +610,37 @@ def verify_parcel(
         warnings.append(
             "valid_pixel_fraction missing; pixel-quality rule (Rule C) not applied"
         )
-    if temporal is None:
+        # Unknown evidence quality must never be presented as settlement-ready
+        # verification (Agent.md §7: "done" means evidence, not impression).
         warnings.append(
-            "window_start/window_end not provided; temporal-coverage rule (Rule B) not applied"
+            "evidence_quality=unknown (no real valid_pixel_fraction "
+            "measurements); result is experimental and must NOT be treated "
+            "as settlement-ready verification"
+        )
+    if temporal is None:
+        if window_start_raw and window_end_raw:
+            # The window was validated at entry, so only its computation
+            # failed here; invalid windows never reach this point.
+            warnings.append(
+                "window_start/window_end provided but temporal coverage could "
+                "not be computed; temporal-coverage rule (Rule B) not applied"
+            )
+        else:
+            warnings.append(
+                "window_start/window_end not provided; temporal-coverage rule (Rule B) not applied"
+            )
+            # Legacy unrestricted mode: permitted by the integration contract,
+            # but explicitly marked experimental / non-settlement.
+            warnings.append(
+                "no commitment window in policy (legacy unrestricted mode): "
+                "the verdict covers the whole CSV, is experimental and must "
+                "NOT be used to authorize settlement"
+            )
+    if out_of_window_excluded:
+        warnings.append(
+            f"{out_of_window_excluded} observation(s) outside the commitment "
+            f"window {window_start_raw} <= acquired_at < {window_end_raw} "
+            f"were excluded from the verdict"
         )
 
     thresholds = {
