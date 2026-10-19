@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.api.v1 import config, health, parcels, plans
+from backend.api.v1 import commitments, config, health, parcels, plans
 from backend.config import get_settings
 
 settings = get_settings()
@@ -19,3 +19,4 @@ app.include_router(health.router, prefix="/api/v1")
 app.include_router(config.router, prefix="/api/v1")
 app.include_router(parcels.router, prefix="/api/v1")
 app.include_router(plans.router, prefix="/api/v1")
+app.include_router(commitments.router, prefix="/api/v1")
