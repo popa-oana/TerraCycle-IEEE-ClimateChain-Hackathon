@@ -1,0 +1,118 @@
+{
+  "description": "Day 5C multi-parcel extraction checkpoint. Records all Copernicus batch job IDs so future sessions can identify unfinished jobs without resubmitting. No credentials or tokens stored.",
+  "last_updated": "2026-10-19T18:30:00Z",
+  "jobs": [
+    {
+      "parcel_id": "parcel_01",
+      "job_id": "j-261019151133489a896e007df5e52e4b",
+      "type": "coverage-valid",
+      "status": "finished",
+      "submitted": "2026-10-19T15:11:33Z",
+      "output": "data/ndvi/_staging/parcel_01_2024_coverage_valid_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_01",
+      "job_id": "j-26101915142842019c3a7439c752fa84",
+      "type": "coverage-eligible",
+      "status": "finished",
+      "submitted": "2026-10-19T15:14:28Z",
+      "output": "data/ndvi/_staging/parcel_01_2024_coverage_eligible_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_01",
+      "job_id": "j-2610141703264e6b9ef209907611a750",
+      "type": "ndvi",
+      "status": "finished",
+      "submitted": "2026-10-14T17:03:26Z",
+      "output": "data/ndvi/parcel_01_2024.csv"
+    },
+    {
+      "parcel_id": "parcel_02",
+      "job_id": "j-261019165412497bb6099318be5e32ff",
+      "type": "ndvi",
+      "status": "finished",
+      "submitted": "2026-10-19T16:54:12Z",
+      "output": "data/ndvi/_staging/parcel_02_2024_quality_ndvi_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_02",
+      "job_id": "j-2610191657524e91ba08ba67e08f7926",
+      "type": "coverage-valid",
+      "status": "finished",
+      "submitted": "2026-10-19T16:57:52Z",
+      "output": "data/ndvi/_staging/parcel_02_2024_quality_coverage_valid_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_02",
+      "job_id": "j-26101917004846438b2588dd9886723f",
+      "type": "coverage-eligible",
+      "status": "finished",
+      "submitted": "2026-10-19T17:00:48Z",
+      "output": "data/ndvi/_staging/parcel_02_2024_quality_coverage_eligible_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_03",
+      "job_id": "j-261019170459413db7f6ef11cfc8028c",
+      "type": "ndvi",
+      "status": "finished",
+      "submitted": "2026-10-19T17:04:59Z",
+      "output": "data/ndvi/_staging/parcel_03_2024_quality_ndvi_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_03",
+      "job_id": "j-2610191707554bbebe0f3a7af1255ad9",
+      "type": "coverage-valid",
+      "status": "finished",
+      "submitted": "2026-10-19T17:07:55Z",
+      "output": "data/ndvi/_staging/parcel_03_2024_quality_coverage_valid_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_03",
+      "job_id": "j-26101917104849a9a81e6e5e0b1381ac",
+      "type": "coverage-eligible",
+      "status": "finished",
+      "submitted": "2026-10-19T17:10:48Z",
+      "output": "data/ndvi/_staging/parcel_03_2024_quality_coverage_eligible_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_04",
+      "job_id": "j-2610191713594ec6883a87504549bc4d",
+      "type": "ndvi",
+      "status": "finished",
+      "submitted": "2026-10-19T17:13:59Z",
+      "output": "data/ndvi/_staging/parcel_04_2024_quality_ndvi_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_04",
+      "job_id": "j-26101917165645848a664185a675e329",
+      "type": "coverage-valid",
+      "status": "finished",
+      "submitted": "2026-10-19T17:16:56Z",
+      "output": "data/ndvi/_staging/parcel_04_2024_quality_coverage_valid_raw.csv"
+    },
+    {
+      "parcel_id": "parcel_04",
+      "job_id": "j-2610191720394a919ddbc320244bc537",
+      "type": "coverage-eligible",
+      "status": "error",
+      "submitted": "2026-10-19T17:20:39Z",
+      "error": "Transient server error: job_specification.json not found",
+      "output": null
+    },
+    {
+      "parcel_id": "parcel_04",
+      "job_id": "j-26101917314648fabaab1c454d655ae6",
+      "type": "coverage-eligible",
+      "status": "finished",
+      "submitted": "2026-10-19T17:31:46Z",
+      "output": "data/ndvi/_staging/parcel_04_2024_quality_coverage_eligible_raw.csv",
+      "note": "Recovery re-submission of failed job j-2610191720394a919ddbc320244bc537"
+    }
+  ],
+  "final_outputs": {
+    "parcel_01": "data/ndvi/parcel_01_2024_quality.csv",
+    "parcel_02": "data/ndvi/parcel_02_2024_quality.csv",
+    "parcel_03": "data/ndvi/parcel_03_2024_quality.csv",
+    "parcel_04": "data/ndvi/parcel_04_2024_quality.csv"
+  }
+}
