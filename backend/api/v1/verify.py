@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,6 +14,7 @@ router = APIRouter(tags=["verify"])
 
 FIXTURE_PATH = Path(__file__).resolve().parents[3] / "data" / "fixtures" / "demo.json"
 EVIDENCE_DIR = Path(__file__).resolve().parents[2] / "data" / "ndvi"
+SIGNER_SCRIPT = Path(__file__).resolve().parents[2] / "signer" / "sign_verdict.mjs"
 
 
 def _load_policy(policy_id: str) -> dict:
@@ -25,6 +27,50 @@ def _load_policy(policy_id: str) -> dict:
             detail={"error": {"code": "VALIDATION_ERROR", "message": f"Unknown policy '{policy_id}'."}},
         )
     return policy
+
+
+def _sign_attestation(payload: dict) -> str:
+    if not SIGNER_SCRIPT.exists():
+        raise HTTPException(
+            status_code=502,
+            detail={"error": {"code": "SIGNING_FAILED", "message": "Node signer script not found."}},
+        )
+    try:
+        completed = subprocess.run(
+            ["node", str(SIGNER_SCRIPT)],
+            input=json.dumps(payload),
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={"error": {"code": "SIGNING_FAILED", "message": f"Signer unavailable: {exc}"}},
+        ) from exc
+
+    if completed.returncode != 0:
+        raise HTTPException(
+            status_code=502,
+            detail={"error": {"code": "SIGNING_FAILED", "message": "Signer returned an error."}},
+        )
+
+    try:
+        result = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={"error": {"code": "SIGNING_FAILED", "message": "Signer output is not valid JSON."}},
+        ) from exc
+
+    signature = result.get("signature")
+    if not signature:
+        raise HTTPException(
+            status_code=502,
+            detail={"error": {"code": "SIGNING_FAILED", "message": "Signer output missing signature."}},
+        )
+    return signature
 
 
 @router.post("/commitments/{commitment_id}/verify")
@@ -93,6 +139,16 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
 
     evidence_bytes, evidence_hash = hash_snapshot(evidence_doc)
 
+    attestation = {
+        "commitmentId": commitment.commitment_id,
+        "planHash": commitment.plan_hash,
+        "evidenceHash": evidence_hash,
+        "verdict": result["verdict_code"],
+        "validUntil": commitment.settle_deadline,
+    }
+
+    signature = _sign_attestation(attestation)
+
     verdict = Verdict(
         evidence_id=evidence_doc["evidence_id"],
         commitment_id=commitment.commitment_id,
@@ -101,6 +157,9 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
         verdict=result["verdict"],
         verdict_code=result["verdict_code"],
         reason_codes=evidence_doc["reason_codes"],
+        attestation=attestation,
+        signature=signature,
+        valid_until=commitment.settle_deadline,
         model_version=evidence_doc["model_version"],
         policy_version=evidence_doc["policy_version"],
     )
@@ -114,13 +173,7 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
         "verdict": result["verdict"],
         "verdict_code": result["verdict_code"],
         "reason_codes": evidence_doc["reason_codes"],
-        "attestation": {
-            "commitmentId": commitment.commitment_id,
-            "planHash": commitment.plan_hash,
-            "evidenceHash": evidence_hash,
-            "verdict": result["verdict_code"],
-            "validUntil": commitment.settle_deadline,
-        },
-        "signature": None,
+        "attestation": attestation,
+        "signature": signature,
         "snapshot_url": f"/api/v1/evidence/{evidence_doc['evidence_id']}/snapshot",
     }
