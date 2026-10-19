@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.api.v1 import health
+from backend.api.v1 import config, health
 from backend.config import get_settings
 
 settings = get_settings()
@@ -16,3 +16,4 @@ app.add_middleware(
 )
 
 app.include_router(health.router, prefix="/api/v1")
+app.include_router(config.router, prefix="/api/v1")
