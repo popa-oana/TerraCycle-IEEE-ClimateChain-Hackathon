@@ -124,6 +124,16 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
     # 3. Call scientific verifier
     try:
         verifier_result = verify_parcel(
+            parcel_id=commitment.parcel_id,
+            policy=policy,
+            evidence_directory=str(EVIDENCE_DIR),
+        )
+    except Exception as exc:
+            raise HTTPException(
+                status_code=502,
+                detail={"error": {"code": "INFERENCE_FAILED", "message": f"ML module error: {exc}"}},
+            ) from exc
+
     if commitment.plan_snapshot is not None:
         recomputed_hash = "0x" + hashlib.sha256(commitment.plan_snapshot).hexdigest()
         if recomputed_hash != commitment.plan_hash:
@@ -131,20 +141,6 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
                 status_code=409,
                 detail={"error": {"code": "PLAN_HASH_MISMATCH", "message": "The stored plan snapshot no longer matches the registered plan hash."}},
             )
-
-    policy = _load_policy(commitment.verification_policy_id)
-
-    try:
-        result = verify_parcel(
-            parcel_id=commitment.parcel_id,
-            policy=policy,
-            evidence_directory=str(EVIDENCE_DIR),
-        )
-    except Exception as exc:
-        raise HTTPException(
-            status_code=502,
-            detail={"error": {"code": "INFERENCE_FAILED", "message": f"ML module error: {exc}"}},
-        ) from exc
 
     # Validate verdict
     if verifier_result.get("verdict") not in ("conform", "nonconform", "inconclusive"):
