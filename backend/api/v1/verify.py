@@ -1,3 +1,4 @@
+import hashlib
 import json
 import subprocess
 from pathlib import Path
@@ -87,6 +88,14 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
             status_code=409,
             detail={"error": {"code": "INVALID_STATE", "message": f"Commitment must be funded to verify, current state: {commitment.state}."}},
         )
+
+    if commitment.plan_snapshot is not None:
+        recomputed_hash = "0x" + hashlib.sha256(commitment.plan_snapshot).hexdigest()
+        if recomputed_hash != commitment.plan_hash:
+            raise HTTPException(
+                status_code=409,
+                detail={"error": {"code": "PLAN_HASH_MISMATCH", "message": "The stored plan snapshot no longer matches the registered plan hash."}},
+            )
 
     policy = _load_policy(commitment.verification_policy_id)
 
