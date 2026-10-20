@@ -30,6 +30,8 @@
       "display_name": "Field 01 — Dolj, Romania",
       "region": "Dolj, Romania",
       "area_ha": 42.50,
+      "latitude": 44.3302,
+      "longitude": 23.7949,
       "geometry_url": "/data/parcels/parcel_01.geojson",
       "data_origin": "real_sentinel2"
     },
@@ -39,6 +41,8 @@
       "display_name": "Field 02 — Ialomița, Romania",
       "region": "Ialomița, Romania",
       "area_ha": 28.30,
+      "latitude": 44.5422,
+      "longitude": 26.2697,
       "geometry_url": "/data/parcels/parcel_02.geojson",
       "data_origin": "fixture"
     },
@@ -48,6 +52,8 @@
       "display_name": "Field 03 — Brașov, Romania",
       "region": "Brașov, Romania",
       "area_ha": 15.10,
+      "latitude": 45.6553,
+      "longitude": 25.5879,
       "geometry_url": "/data/parcels/parcel_03.geojson",
       "data_origin": "fixture"
     }
