@@ -22,6 +22,7 @@ function ParcelsPage() {
     configError: false,
     networkError: false,
   });
+  const [selectedParcelId, setSelectedParcelId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -213,37 +214,79 @@ function ParcelsPage() {
           )}
 
           {state.status === 'success' && (
-            <ul
-              className="flex flex-col gap-6 md:gap-8"
-              aria-label="Available parcels"
-            >
-              {state.parcels.map((parcel) => (
-                <li
-                  key={parcel.parcel_id}
-                  className="flex flex-col gap-4 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--white)] px-5 py-6 md:px-8 md:py-8"
-                >
-                  <div className="flex flex-col gap-2 md:flex-row md:items-baseline md:justify-between">
-                    <h3 className="text-[18px] leading-[1.25] font-semibold text-[var(--navy-950)] md:text-[20px]">
-                      {parcel.display_name}
-                    </h3>
-                    <p className="text-[12px] font-medium tracking-[0.14em] text-[var(--muted)]">
-                      {parcel.parcel_id}
-                    </p>
-                  </div>
+            <>
+              <p
+                className="mb-4 text-[12px] font-medium tracking-[0.12em] text-[var(--muted)]"
+                aria-live="polite"
+              >
+                {selectedParcelId
+                  ? `SELECTED PARCEL: ${selectedParcelId}`
+                  : 'SELECT A PARCEL BY CLICKING OR USING KEYBOARD'}
+              </p>
+              <ul
+                className="flex flex-col gap-6 md:gap-8"
+                aria-label="Available parcels"
+              >
+                {state.parcels.map((parcel) => {
+                  const isSelected = selectedParcelId === parcel.parcel_id;
+                  return (
+                    <li
+                      key={parcel.parcel_id}
+                      className={`flex flex-col gap-4 rounded-[var(--radius-md)] border bg-[var(--white)] px-5 py-6 transition-shadow md:px-8 md:py-8 ${
+                        isSelected
+                          ? 'border-[var(--red-700)] shadow-[var(--shadow-soft)] ring-1 ring-[var(--red-700)]'
+                          : 'border-[var(--line)]'
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        className="w-full text-left focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[var(--red-600)]"
+                        aria-pressed={isSelected}
+                        aria-label={`Select ${parcel.display_name}, ${parcel.parcel_id}, ${parcel.region}, ${parcel.area_ha} hectares`}
+                        onClick={() => {
+                          setSelectedParcelId((current) =>
+                            current === parcel.parcel_id ? null : parcel.parcel_id,
+                          );
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setSelectedParcelId((current) =>
+                              current === parcel.parcel_id ? null : parcel.parcel_id,
+                            );
+                          }
+                        }}
+                      >
+                        <div className="flex flex-col gap-2 md:flex-row md:items-baseline md:justify-between">
+                          <h3 className="text-[18px] leading-[1.25] font-semibold text-[var(--navy-950)] md:text-[20px]">
+                            {parcel.display_name}
+                          </h3>
+                          <p className="text-[12px] font-medium tracking-[0.14em] text-[var(--muted)]">
+                            {parcel.parcel_id}
+                          </p>
+                        </div>
 
-                  <div className="flex flex-col gap-x-8 gap-y-2 sm:flex-row sm:items-baseline">
-                    <p className="text-[15px] leading-[1.6] text-[var(--ink)] md:text-[16px]">
-                      <span className="text-[var(--muted)]">Region:</span>{' '}
-                      {parcel.region}
-                    </p>
-                    <p className="text-[15px] leading-[1.6] text-[var(--ink)] md:text-[16px]">
-                      <span className="text-[var(--muted)]">Area:</span>{' '}
-                      {parcel.area_ha.toLocaleString('en-US')} ha
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                        <div className="mt-3 flex flex-col gap-x-8 gap-y-2 sm:flex-row sm:items-baseline">
+                          <p className="text-[15px] leading-[1.6] text-[var(--ink)] md:text-[16px]">
+                            <span className="text-[var(--muted)]">Region:</span>{' '}
+                            {parcel.region}
+                          </p>
+                          <p className="text-[15px] leading-[1.6] text-[var(--ink)] md:text-[16px]">
+                            <span className="text-[var(--muted)]">Area:</span>{' '}
+                            {parcel.area_ha.toLocaleString('en-US')} ha
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <p className="mt-3 text-[12px] font-medium tracking-[0.12em] text-[var(--red-700)]">
+                            SELECTED
+                          </p>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </div>
       </section>
