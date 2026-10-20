@@ -1,0 +1,576 @@
+{
+  "generated_at": "2026-10-20T06:55:12Z",
+  "input_file": "C:\\Users\\Crenguta Ciobanica\\Desktop\\TerraCycle\\TerraCycle-IEEE-ClimateChain-Hackathon\\data\\features\\observations_clean_4parcels.csv",
+  "train_fraction": 0.75,
+  "z_95": 1.96,
+  "parcels": [
+    {
+      "parcel_id": "parcel_01",
+      "evaluated": true,
+      "reason": null,
+      "n_train": 21,
+      "n_test": 8,
+      "test_period_start": "2024-08-25T00:00:00Z",
+      "test_period_end": "2024-10-24T00:00:00Z",
+      "gpr_mae": 0.216917,
+      "gpr_rmse": 0.222474,
+      "baseline_mae": 0.032047,
+      "baseline_rmse": 0.035771,
+      "gpr_better_than_baseline": false,
+      "predictive_interval_coverage_95": 1.0,
+      "mean_predictive_std": 0.261982,
+      "predictions": [
+        {
+          "acquired_at": "2024-08-25T00:00:00Z",
+          "actual_ndvi": 0.173113,
+          "predicted_ndvi": 0.294278,
+          "predicted_std": 0.177002,
+          "lower_95": -0.052645,
+          "upper_95": 0.641201,
+          "baseline_prediction": 0.197359
+        },
+        {
+          "acquired_at": "2024-09-04T00:00:00Z",
+          "actual_ndvi": 0.161626,
+          "predicted_ndvi": 0.353428,
+          "predicted_std": 0.237604,
+          "lower_95": -0.112276,
+          "upper_95": 0.819131,
+          "baseline_prediction": 0.197359
+        },
+        {
+          "acquired_at": "2024-09-14T00:00:00Z",
+          "actual_ndvi": 0.174087,
+          "predicted_ndvi": 0.396664,
+          "predicted_std": 0.266685,
+          "lower_95": -0.126039,
+          "upper_95": 0.919367,
+          "baseline_prediction": 0.197359
+        },
+        {
+          "acquired_at": "2024-09-19T00:00:00Z",
+          "actual_ndvi": 0.175118,
+          "predicted_ndvi": 0.412732,
+          "predicted_std": 0.274397,
+          "lower_95": -0.125086,
+          "upper_95": 0.950549,
+          "baseline_prediction": 0.197359
+        },
+        {
+          "acquired_at": "2024-09-24T00:00:00Z",
+          "actual_ndvi": 0.194079,
+          "predicted_ndvi": 0.425698,
+          "predicted_std": 0.279385,
+          "lower_95": -0.121898,
+          "upper_95": 0.973293,
+          "baseline_prediction": 0.197359
+        },
+        {
+          "acquired_at": "2024-10-14T00:00:00Z",
+          "actual_ndvi": 0.243118,
+          "predicted_ndvi": 0.455677,
+          "predicted_std": 0.286533,
+          "lower_95": -0.105928,
+          "upper_95": 1.017281,
+          "baseline_prediction": 0.197359
+        },
+        {
+          "acquired_at": "2024-10-19T00:00:00Z",
+          "actual_ndvi": 0.252993,
+          "predicted_ndvi": 0.459568,
+          "predicted_std": 0.286988,
+          "lower_95": -0.102928,
+          "upper_95": 1.022065,
+          "baseline_prediction": 0.197359
+        },
+        {
+          "acquired_at": "2024-10-24T00:00:00Z",
+          "actual_ndvi": 0.151147,
+          "predicted_ndvi": 0.462574,
+          "predicted_std": 0.287261,
+          "lower_95": -0.100457,
+          "upper_95": 1.025605,
+          "baseline_prediction": 0.197359
+        }
+      ]
+    },
+    {
+      "parcel_id": "parcel_02",
+      "evaluated": true,
+      "reason": null,
+      "n_train": 47,
+      "n_test": 16,
+      "test_period_start": "2024-09-02T00:00:00Z",
+      "test_period_end": "2024-10-29T00:00:00Z",
+      "gpr_mae": 0.102452,
+      "gpr_rmse": 0.11692,
+      "baseline_mae": 0.017864,
+      "baseline_rmse": 0.022583,
+      "gpr_better_than_baseline": false,
+      "predictive_interval_coverage_95": 1.0,
+      "mean_predictive_std": 0.18353,
+      "predictions": [
+        {
+          "acquired_at": "2024-09-02T00:00:00Z",
+          "actual_ndvi": 0.190542,
+          "predicted_ndvi": 0.208421,
+          "predicted_std": 0.081007,
+          "lower_95": 0.049647,
+          "upper_95": 0.367194,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-09-04T00:00:00Z",
+          "actual_ndvi": 0.197857,
+          "predicted_ndvi": 0.213285,
+          "predicted_std": 0.092255,
+          "lower_95": 0.032466,
+          "upper_95": 0.394104,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-09-07T00:00:00Z",
+          "actual_ndvi": 0.148231,
+          "predicted_ndvi": 0.222094,
+          "predicted_std": 0.109071,
+          "lower_95": 0.008315,
+          "upper_95": 0.435873,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-09-12T00:00:00Z",
+          "actual_ndvi": 0.186164,
+          "predicted_ndvi": 0.239608,
+          "predicted_std": 0.135411,
+          "lower_95": -0.025797,
+          "upper_95": 0.505013,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-09-14T00:00:00Z",
+          "actual_ndvi": 0.188079,
+          "predicted_ndvi": 0.247262,
+          "predicted_std": 0.145085,
+          "lower_95": -0.037104,
+          "upper_95": 0.531628,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-09-17T00:00:00Z",
+          "actual_ndvi": 0.193211,
+          "predicted_ndvi": 0.259141,
+          "predicted_std": 0.158554,
+          "lower_95": -0.051625,
+          "upper_95": 0.569907,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-09-22T00:00:00Z",
+          "actual_ndvi": 0.217461,
+          "predicted_ndvi": 0.279401,
+          "predicted_std": 0.178188,
+          "lower_95": -0.069849,
+          "upper_95": 0.62865,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-09-27T00:00:00Z",
+          "actual_ndvi": 0.20344,
+          "predicted_ndvi": 0.299494,
+          "predicted_std": 0.19447,
+          "lower_95": -0.081666,
+          "upper_95": 0.680655,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-10-02T00:00:00Z",
+          "actual_ndvi": 0.215121,
+          "predicted_ndvi": 0.318827,
+          "predicted_std": 0.207745,
+          "lower_95": -0.088354,
+          "upper_95": 0.726008,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-10-07T00:00:00Z",
+          "actual_ndvi": 0.217361,
+          "predicted_ndvi": 0.337023,
+          "predicted_std": 0.218426,
+          "lower_95": -0.091092,
+          "upper_95": 0.765139,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-10-12T00:00:00Z",
+          "actual_ndvi": 0.22205,
+          "predicted_ndvi": 0.353866,
+          "predicted_std": 0.226923,
+          "lower_95": -0.090903,
+          "upper_95": 0.798636,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-10-14T00:00:00Z",
+          "actual_ndvi": 0.222846,
+          "predicted_ndvi": 0.360199,
+          "predicted_std": 0.229797,
+          "lower_95": -0.090203,
+          "upper_95": 0.810602,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-10-19T00:00:00Z",
+          "actual_ndvi": 0.243459,
+          "predicted_ndvi": 0.374997,
+          "predicted_std": 0.235867,
+          "lower_95": -0.087302,
+          "upper_95": 0.837295,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-10-22T00:00:00Z",
+          "actual_ndvi": 0.223152,
+          "predicted_ndvi": 0.383168,
+          "predicted_std": 0.238844,
+          "lower_95": -0.084967,
+          "upper_95": 0.851303,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-10-24T00:00:00Z",
+          "actual_ndvi": 0.189188,
+          "predicted_ndvi": 0.388326,
+          "predicted_std": 0.240591,
+          "lower_95": -0.083232,
+          "upper_95": 0.859884,
+          "baseline_prediction": 0.196773
+        },
+        {
+          "acquired_at": "2024-10-29T00:00:00Z",
+          "actual_ndvi": 0.187954,
+          "predicted_ndvi": 0.400237,
+          "predicted_std": 0.24424,
+          "lower_95": -0.078473,
+          "upper_95": 0.878948,
+          "baseline_prediction": 0.196773
+        }
+      ]
+    },
+    {
+      "parcel_id": "parcel_03",
+      "evaluated": true,
+      "reason": null,
+      "n_train": 46,
+      "n_test": 16,
+      "test_period_start": "2024-09-04T00:00:00Z",
+      "test_period_end": "2024-10-29T00:00:00Z",
+      "gpr_mae": 0.095915,
+      "gpr_rmse": 0.114171,
+      "baseline_mae": 0.030989,
+      "baseline_rmse": 0.039129,
+      "gpr_better_than_baseline": false,
+      "predictive_interval_coverage_95": 1.0,
+      "mean_predictive_std": 0.130132,
+      "predictions": [
+        {
+          "acquired_at": "2024-09-04T00:00:00Z",
+          "actual_ndvi": 0.212449,
+          "predicted_ndvi": 0.208638,
+          "predicted_std": 0.031242,
+          "lower_95": 0.147404,
+          "upper_95": 0.269871,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-09-12T00:00:00Z",
+          "actual_ndvi": 0.201073,
+          "predicted_ndvi": 0.234332,
+          "predicted_std": 0.074867,
+          "lower_95": 0.087593,
+          "upper_95": 0.38107,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-09-14T00:00:00Z",
+          "actual_ndvi": 0.209702,
+          "predicted_ndvi": 0.244176,
+          "predicted_std": 0.085541,
+          "lower_95": 0.076517,
+          "upper_95": 0.411835,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-09-17T00:00:00Z",
+          "actual_ndvi": 0.219901,
+          "predicted_ndvi": 0.260082,
+          "predicted_std": 0.100109,
+          "lower_95": 0.063867,
+          "upper_95": 0.456296,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-09-19T00:00:00Z",
+          "actual_ndvi": 0.201754,
+          "predicted_ndvi": 0.271094,
+          "predicted_std": 0.10879,
+          "lower_95": 0.057865,
+          "upper_95": 0.484323,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-09-22T00:00:00Z",
+          "actual_ndvi": 0.24229,
+          "predicted_ndvi": 0.287762,
+          "predicted_std": 0.120276,
+          "lower_95": 0.05202,
+          "upper_95": 0.523503,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-09-24T00:00:00Z",
+          "actual_ndvi": 0.240282,
+          "predicted_ndvi": 0.298767,
+          "predicted_std": 0.126959,
+          "lower_95": 0.049928,
+          "upper_95": 0.547606,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-09-27T00:00:00Z",
+          "actual_ndvi": 0.235073,
+          "predicted_ndvi": 0.314853,
+          "predicted_std": 0.13564,
+          "lower_95": 0.048998,
+          "upper_95": 0.580708,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-10-02T00:00:00Z",
+          "actual_ndvi": 0.245714,
+          "predicted_ndvi": 0.339961,
+          "predicted_std": 0.146988,
+          "lower_95": 0.051864,
+          "upper_95": 0.628058,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-10-07T00:00:00Z",
+          "actual_ndvi": 0.252319,
+          "predicted_ndvi": 0.362416,
+          "predicted_std": 0.155175,
+          "lower_95": 0.058272,
+          "upper_95": 0.666559,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-10-12T00:00:00Z",
+          "actual_ndvi": 0.262407,
+          "predicted_ndvi": 0.381999,
+          "predicted_std": 0.160968,
+          "lower_95": 0.066501,
+          "upper_95": 0.697497,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-10-14T00:00:00Z",
+          "actual_ndvi": 0.268999,
+          "predicted_ndvi": 0.389033,
+          "predicted_std": 0.162762,
+          "lower_95": 0.07002,
+          "upper_95": 0.708046,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-10-19T00:00:00Z",
+          "actual_ndvi": 0.276841,
+          "predicted_ndvi": 0.404717,
+          "predicted_std": 0.166234,
+          "lower_95": 0.078897,
+          "upper_95": 0.730536,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-10-22T00:00:00Z",
+          "actual_ndvi": 0.254299,
+          "predicted_ndvi": 0.4129,
+          "predicted_std": 0.167765,
+          "lower_95": 0.084082,
+          "upper_95": 0.741719,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-10-24T00:00:00Z",
+          "actual_ndvi": 0.208717,
+          "predicted_ndvi": 0.417883,
+          "predicted_std": 0.168603,
+          "lower_95": 0.087421,
+          "upper_95": 0.748344,
+          "baseline_prediction": 0.203175
+        },
+        {
+          "acquired_at": "2024-10-29T00:00:00Z",
+          "actual_ndvi": 0.198591,
+          "predicted_ndvi": 0.428819,
+          "predicted_std": 0.170198,
+          "lower_95": 0.095231,
+          "upper_95": 0.762407,
+          "baseline_prediction": 0.203175
+        }
+      ]
+    },
+    {
+      "parcel_id": "parcel_04",
+      "evaluated": true,
+      "reason": null,
+      "n_train": 45,
+      "n_test": 15,
+      "test_period_start": "2024-08-25T00:00:00Z",
+      "test_period_end": "2024-10-29T00:00:00Z",
+      "gpr_mae": 0.109655,
+      "gpr_rmse": 0.119697,
+      "baseline_mae": 0.038228,
+      "baseline_rmse": 0.052241,
+      "gpr_better_than_baseline": false,
+      "predictive_interval_coverage_95": 1.0,
+      "mean_predictive_std": 0.177338,
+      "predictions": [
+        {
+          "acquired_at": "2024-08-25T00:00:00Z",
+          "actual_ndvi": 0.190211,
+          "predicted_ndvi": 0.191668,
+          "predicted_std": 0.031401,
+          "lower_95": 0.130122,
+          "upper_95": 0.253214,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-09-02T00:00:00Z",
+          "actual_ndvi": 0.178757,
+          "predicted_ndvi": 0.220762,
+          "predicted_std": 0.091831,
+          "lower_95": 0.040773,
+          "upper_95": 0.400751,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-09-04T00:00:00Z",
+          "actual_ndvi": 0.184066,
+          "predicted_ndvi": 0.230609,
+          "predicted_std": 0.106474,
+          "lower_95": 0.02192,
+          "upper_95": 0.439299,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-09-07T00:00:00Z",
+          "actual_ndvi": 0.164014,
+          "predicted_ndvi": 0.246162,
+          "predicted_std": 0.126548,
+          "lower_95": -0.001872,
+          "upper_95": 0.494196,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-09-12T00:00:00Z",
+          "actual_ndvi": 0.18298,
+          "predicted_ndvi": 0.272668,
+          "predicted_std": 0.154577,
+          "lower_95": -0.030302,
+          "upper_95": 0.575638,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-09-17T00:00:00Z",
+          "actual_ndvi": 0.181696,
+          "predicted_ndvi": 0.298259,
+          "predicted_std": 0.176188,
+          "lower_95": -0.04707,
+          "upper_95": 0.643588,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-09-22T00:00:00Z",
+          "actual_ndvi": 0.201971,
+          "predicted_ndvi": 0.321827,
+          "predicted_std": 0.19235,
+          "lower_95": -0.055179,
+          "upper_95": 0.698833,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-09-27T00:00:00Z",
+          "actual_ndvi": 0.204405,
+          "predicted_ndvi": 0.342853,
+          "predicted_std": 0.204158,
+          "lower_95": -0.057297,
+          "upper_95": 0.743003,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-10-07T00:00:00Z",
+          "actual_ndvi": 0.22423,
+          "predicted_ndvi": 0.376903,
+          "predicted_std": 0.218588,
+          "lower_95": -0.05153,
+          "upper_95": 0.805336,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-10-12T00:00:00Z",
+          "actual_ndvi": 0.238341,
+          "predicted_ndvi": 0.390193,
+          "predicted_std": 0.222734,
+          "lower_95": -0.046366,
+          "upper_95": 0.826752,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-10-14T00:00:00Z",
+          "actual_ndvi": 0.256878,
+          "predicted_ndvi": 0.394886,
+          "predicted_std": 0.224004,
+          "lower_95": -0.044161,
+          "upper_95": 0.833933,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-10-19T00:00:00Z",
+          "actual_ndvi": 0.303917,
+          "predicted_ndvi": 0.405212,
+          "predicted_std": 0.226441,
+          "lower_95": -0.038611,
+          "upper_95": 0.849036,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-10-22T00:00:00Z",
+          "actual_ndvi": 0.287294,
+          "predicted_ndvi": 0.410532,
+          "predicted_std": 0.227505,
+          "lower_95": -0.035378,
+          "upper_95": 0.856441,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-10-24T00:00:00Z",
+          "actual_ndvi": 0.238573,
+          "predicted_ndvi": 0.413749,
+          "predicted_std": 0.228085,
+          "lower_95": -0.033298,
+          "upper_95": 0.860796,
+          "baseline_prediction": 0.187155
+        },
+        {
+          "acquired_at": "2024-10-29T00:00:00Z",
+          "actual_ndvi": 0.254881,
+          "predicted_ndvi": 0.420757,
+          "predicted_std": 0.229184,
+          "lower_95": -0.028443,
+          "upper_95": 0.869957,
+          "baseline_prediction": 0.187155
+        }
+      ]
+    }
+  ],
+  "reanalysis_note": "REANALYSIS of the previously inspected Day 6C.2 test set. Model kernel, hyperparameters, chronological split and persistence baseline are unchanged; only the time origin used for held-out predictions is fixed. This is not a fresh independent benchmark."
+}

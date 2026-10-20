@@ -1,0 +1,547 @@
+{
+  "generated_at": "2026-10-19T21:08:29Z",
+  "input_file": "C:\\Users\\Crenguta Ciobanica\\Desktop\\TerraCycle\\TerraCycle-IEEE-ClimateChain-Hackathon\\data\\features\\observations_clean_4parcels.csv",
+  "grid_points": 20,
+  "parcels": {
+    "parcel_01": {
+      "observation_count": 29,
+      "trained": true,
+      "error": null,
+      "elapsed_days_range": [
+        0.0,
+        215.0
+      ],
+      "ndvi_range": [
+        0.151147,
+        0.920044
+      ],
+      "prediction_grid": [
+        {
+          "date": "2024-03-23",
+          "elapsed_days": 0.0,
+          "ndvi_mean": 0.853875,
+          "ndvi_std": 1.2e-05
+        },
+        {
+          "date": "2024-04-03",
+          "elapsed_days": 11.0,
+          "ndvi_mean": 0.921089,
+          "ndvi_std": 0.008406
+        },
+        {
+          "date": "2024-04-15",
+          "elapsed_days": 23.0,
+          "ndvi_mean": 0.881911,
+          "ndvi_std": 0.031963
+        },
+        {
+          "date": "2024-04-26",
+          "elapsed_days": 34.0,
+          "ndvi_mean": 0.907895,
+          "ndvi_std": 0.05237
+        },
+        {
+          "date": "2024-05-07",
+          "elapsed_days": 45.0,
+          "ndvi_mean": 0.818848,
+          "ndvi_std": 1.2e-05
+        },
+        {
+          "date": "2024-05-19",
+          "elapsed_days": 57.0,
+          "ndvi_mean": 0.637473,
+          "ndvi_std": 0.025739
+        },
+        {
+          "date": "2024-05-30",
+          "elapsed_days": 68.0,
+          "ndvi_mean": 0.692999,
+          "ndvi_std": 0.009767
+        },
+        {
+          "date": "2024-06-10",
+          "elapsed_days": 79.0,
+          "ndvi_mean": 0.24415,
+          "ndvi_std": 0.006303
+        },
+        {
+          "date": "2024-06-22",
+          "elapsed_days": 91.0,
+          "ndvi_mean": 0.211202,
+          "ndvi_std": 0.006303
+        },
+        {
+          "date": "2024-07-03",
+          "elapsed_days": 102.0,
+          "ndvi_mean": 0.196199,
+          "ndvi_std": 0.009729
+        },
+        {
+          "date": "2024-07-14",
+          "elapsed_days": 113.0,
+          "ndvi_mean": 0.214725,
+          "ndvi_std": 0.010318
+        },
+        {
+          "date": "2024-07-25",
+          "elapsed_days": 124.0,
+          "ndvi_mean": 0.203331,
+          "ndvi_std": 0.008288
+        },
+        {
+          "date": "2024-08-06",
+          "elapsed_days": 136.0,
+          "ndvi_mean": 0.187909,
+          "ndvi_std": 0.026795
+        },
+        {
+          "date": "2024-08-17",
+          "elapsed_days": 147.0,
+          "ndvi_mean": 0.193828,
+          "ndvi_std": 0.047215
+        },
+        {
+          "date": "2024-08-28",
+          "elapsed_days": 158.0,
+          "ndvi_mean": 0.166681,
+          "ndvi_std": 0.024318
+        },
+        {
+          "date": "2024-09-09",
+          "elapsed_days": 170.0,
+          "ndvi_mean": 0.168699,
+          "ndvi_std": 0.026795
+        },
+        {
+          "date": "2024-09-20",
+          "elapsed_days": 181.0,
+          "ndvi_mean": 0.177763,
+          "ndvi_std": 0.0066
+        },
+        {
+          "date": "2024-10-01",
+          "elapsed_days": 192.0,
+          "ndvi_mean": 0.209957,
+          "ndvi_std": 0.056236
+        },
+        {
+          "date": "2024-10-13",
+          "elapsed_days": 204.0,
+          "ndvi_mean": 0.237064,
+          "ndvi_std": 0.009488
+        },
+        {
+          "date": "2024-10-24",
+          "elapsed_days": 215.0,
+          "ndvi_mean": 0.151147,
+          "ndvi_std": 1.2e-05
+        }
+      ]
+    },
+    "parcel_02": {
+      "observation_count": 63,
+      "trained": true,
+      "error": null,
+      "elapsed_days_range": [
+        0.0,
+        240.0
+      ],
+      "ndvi_range": [
+        0.13148,
+        0.822542
+      ],
+      "prediction_grid": [
+        {
+          "date": "2024-03-03",
+          "elapsed_days": 0.0,
+          "ndvi_mean": 0.152155,
+          "ndvi_std": 0.045661
+        },
+        {
+          "date": "2024-03-16",
+          "elapsed_days": 13.0,
+          "ndvi_mean": 0.291884,
+          "ndvi_std": 0.041057
+        },
+        {
+          "date": "2024-03-28",
+          "elapsed_days": 25.0,
+          "ndvi_mean": 0.348172,
+          "ndvi_std": 0.038901
+        },
+        {
+          "date": "2024-04-10",
+          "elapsed_days": 38.0,
+          "ndvi_mean": 0.322145,
+          "ndvi_std": 0.038747
+        },
+        {
+          "date": "2024-04-23",
+          "elapsed_days": 51.0,
+          "ndvi_mean": 0.347836,
+          "ndvi_std": 0.042205
+        },
+        {
+          "date": "2024-05-05",
+          "elapsed_days": 63.0,
+          "ndvi_mean": 0.378843,
+          "ndvi_std": 0.038284
+        },
+        {
+          "date": "2024-05-18",
+          "elapsed_days": 76.0,
+          "ndvi_mean": 0.513736,
+          "ndvi_std": 0.043707
+        },
+        {
+          "date": "2024-05-30",
+          "elapsed_days": 88.0,
+          "ndvi_mean": 0.690733,
+          "ndvi_std": 0.037365
+        },
+        {
+          "date": "2024-06-12",
+          "elapsed_days": 101.0,
+          "ndvi_mean": 0.757775,
+          "ndvi_std": 0.037225
+        },
+        {
+          "date": "2024-06-25",
+          "elapsed_days": 114.0,
+          "ndvi_mean": 0.733981,
+          "ndvi_std": 0.03725
+        },
+        {
+          "date": "2024-07-07",
+          "elapsed_days": 126.0,
+          "ndvi_mean": 0.664638,
+          "ndvi_std": 0.037805
+        },
+        {
+          "date": "2024-07-20",
+          "elapsed_days": 139.0,
+          "ndvi_mean": 0.406281,
+          "ndvi_std": 0.038043
+        },
+        {
+          "date": "2024-08-02",
+          "elapsed_days": 152.0,
+          "ndvi_mean": 0.28895,
+          "ndvi_std": 0.038065
+        },
+        {
+          "date": "2024-08-14",
+          "elapsed_days": 164.0,
+          "ndvi_mean": 0.232323,
+          "ndvi_std": 0.038425
+        },
+        {
+          "date": "2024-08-27",
+          "elapsed_days": 177.0,
+          "ndvi_mean": 0.194009,
+          "ndvi_std": 0.039344
+        },
+        {
+          "date": "2024-09-08",
+          "elapsed_days": 189.0,
+          "ndvi_mean": 0.178662,
+          "ndvi_std": 0.038147
+        },
+        {
+          "date": "2024-09-21",
+          "elapsed_days": 202.0,
+          "ndvi_mean": 0.203021,
+          "ndvi_std": 0.039013
+        },
+        {
+          "date": "2024-10-04",
+          "elapsed_days": 215.0,
+          "ndvi_mean": 0.217281,
+          "ndvi_std": 0.039287
+        },
+        {
+          "date": "2024-10-16",
+          "elapsed_days": 227.0,
+          "ndvi_mean": 0.224911,
+          "ndvi_std": 0.038341
+        },
+        {
+          "date": "2024-10-29",
+          "elapsed_days": 240.0,
+          "ndvi_mean": 0.195795,
+          "ndvi_std": 0.043292
+        }
+      ]
+    },
+    "parcel_03": {
+      "observation_count": 62,
+      "trained": true,
+      "error": null,
+      "elapsed_days_range": [
+        0.0,
+        222.0
+      ],
+      "ndvi_range": [
+        0.198591,
+        0.755974
+      ],
+      "prediction_grid": [
+        {
+          "date": "2024-03-21",
+          "elapsed_days": 0.0,
+          "ndvi_mean": 0.346105,
+          "ndvi_std": 0.02207
+        },
+        {
+          "date": "2024-04-02",
+          "elapsed_days": 12.0,
+          "ndvi_mean": 0.401393,
+          "ndvi_std": 0.020917
+        },
+        {
+          "date": "2024-04-13",
+          "elapsed_days": 23.0,
+          "ndvi_mean": 0.418785,
+          "ndvi_std": 0.02173
+        },
+        {
+          "date": "2024-04-25",
+          "elapsed_days": 35.0,
+          "ndvi_mean": 0.495474,
+          "ndvi_std": 0.027655
+        },
+        {
+          "date": "2024-05-07",
+          "elapsed_days": 47.0,
+          "ndvi_mean": 0.558454,
+          "ndvi_std": 0.019947
+        },
+        {
+          "date": "2024-05-18",
+          "elapsed_days": 58.0,
+          "ndvi_mean": 0.65225,
+          "ndvi_std": 0.028703
+        },
+        {
+          "date": "2024-05-30",
+          "elapsed_days": 70.0,
+          "ndvi_mean": 0.746162,
+          "ndvi_std": 0.019932
+        },
+        {
+          "date": "2024-06-11",
+          "elapsed_days": 82.0,
+          "ndvi_mean": 0.683027,
+          "ndvi_std": 0.020687
+        },
+        {
+          "date": "2024-06-22",
+          "elapsed_days": 93.0,
+          "ndvi_mean": 0.604647,
+          "ndvi_std": 0.019979
+        },
+        {
+          "date": "2024-07-04",
+          "elapsed_days": 105.0,
+          "ndvi_mean": 0.593854,
+          "ndvi_std": 0.021119
+        },
+        {
+          "date": "2024-07-16",
+          "elapsed_days": 117.0,
+          "ndvi_mean": 0.374149,
+          "ndvi_std": 0.020049
+        },
+        {
+          "date": "2024-07-28",
+          "elapsed_days": 129.0,
+          "ndvi_mean": 0.303072,
+          "ndvi_std": 0.020035
+        },
+        {
+          "date": "2024-08-08",
+          "elapsed_days": 140.0,
+          "ndvi_mean": 0.246793,
+          "ndvi_std": 0.020059
+        },
+        {
+          "date": "2024-08-20",
+          "elapsed_days": 152.0,
+          "ndvi_mean": 0.231911,
+          "ndvi_std": 0.02139
+        },
+        {
+          "date": "2024-09-01",
+          "elapsed_days": 164.0,
+          "ndvi_mean": 0.21143,
+          "ndvi_std": 0.021689
+        },
+        {
+          "date": "2024-09-12",
+          "elapsed_days": 175.0,
+          "ndvi_mean": 0.204869,
+          "ndvi_std": 0.020887
+        },
+        {
+          "date": "2024-09-24",
+          "elapsed_days": 187.0,
+          "ndvi_mean": 0.236098,
+          "ndvi_std": 0.020049
+        },
+        {
+          "date": "2024-10-06",
+          "elapsed_days": 199.0,
+          "ndvi_mean": 0.252108,
+          "ndvi_std": 0.021533
+        },
+        {
+          "date": "2024-10-17",
+          "elapsed_days": 210.0,
+          "ndvi_mean": 0.270053,
+          "ndvi_std": 0.021136
+        },
+        {
+          "date": "2024-10-29",
+          "elapsed_days": 222.0,
+          "ndvi_mean": 0.199768,
+          "ndvi_std": 0.023328
+        }
+      ]
+    },
+    "parcel_04": {
+      "observation_count": 60,
+      "trained": true,
+      "error": null,
+      "elapsed_days_range": [
+        0.0,
+        220.0
+      ],
+      "ndvi_range": [
+        0.143532,
+        0.849215
+      ],
+      "prediction_grid": [
+        {
+          "date": "2024-03-23",
+          "elapsed_days": 0.0,
+          "ndvi_mean": 0.686588,
+          "ndvi_std": 0.024318
+        },
+        {
+          "date": "2024-04-04",
+          "elapsed_days": 12.0,
+          "ndvi_mean": 0.696728,
+          "ndvi_std": 0.021296
+        },
+        {
+          "date": "2024-04-15",
+          "elapsed_days": 23.0,
+          "ndvi_mean": 0.724552,
+          "ndvi_std": 0.025767
+        },
+        {
+          "date": "2024-04-27",
+          "elapsed_days": 35.0,
+          "ndvi_mean": 0.76807,
+          "ndvi_std": 0.027282
+        },
+        {
+          "date": "2024-05-08",
+          "elapsed_days": 46.0,
+          "ndvi_mean": 0.784312,
+          "ndvi_std": 0.021394
+        },
+        {
+          "date": "2024-05-20",
+          "elapsed_days": 58.0,
+          "ndvi_mean": 0.813019,
+          "ndvi_std": 0.0247
+        },
+        {
+          "date": "2024-05-31",
+          "elapsed_days": 69.0,
+          "ndvi_mean": 0.760908,
+          "ndvi_std": 0.020287
+        },
+        {
+          "date": "2024-06-12",
+          "elapsed_days": 81.0,
+          "ndvi_mean": 0.452405,
+          "ndvi_std": 0.020387
+        },
+        {
+          "date": "2024-06-24",
+          "elapsed_days": 93.0,
+          "ndvi_mean": 0.341098,
+          "ndvi_std": 0.020308
+        },
+        {
+          "date": "2024-07-05",
+          "elapsed_days": 104.0,
+          "ndvi_mean": 0.286083,
+          "ndvi_std": 0.02154
+        },
+        {
+          "date": "2024-07-17",
+          "elapsed_days": 116.0,
+          "ndvi_mean": 0.207172,
+          "ndvi_std": 0.020389
+        },
+        {
+          "date": "2024-07-28",
+          "elapsed_days": 127.0,
+          "ndvi_mean": 0.20766,
+          "ndvi_std": 0.020418
+        },
+        {
+          "date": "2024-08-09",
+          "elapsed_days": 139.0,
+          "ndvi_mean": 0.193627,
+          "ndvi_std": 0.020312
+        },
+        {
+          "date": "2024-08-21",
+          "elapsed_days": 151.0,
+          "ndvi_mean": 0.190385,
+          "ndvi_std": 0.021707
+        },
+        {
+          "date": "2024-09-01",
+          "elapsed_days": 162.0,
+          "ndvi_mean": 0.181553,
+          "ndvi_std": 0.02232
+        },
+        {
+          "date": "2024-09-13",
+          "elapsed_days": 174.0,
+          "ndvi_mean": 0.17958,
+          "ndvi_std": 0.022098
+        },
+        {
+          "date": "2024-09-24",
+          "elapsed_days": 185.0,
+          "ndvi_mean": 0.201777,
+          "ndvi_std": 0.022295
+        },
+        {
+          "date": "2024-10-06",
+          "elapsed_days": 197.0,
+          "ndvi_mean": 0.220488,
+          "ndvi_std": 0.023781
+        },
+        {
+          "date": "2024-10-17",
+          "elapsed_days": 208.0,
+          "ndvi_mean": 0.280264,
+          "ndvi_std": 0.021796
+        },
+        {
+          "date": "2024-10-29",
+          "elapsed_days": 220.0,
+          "ndvi_mean": 0.251572,
+          "ndvi_std": 0.023749
+        }
+      ]
+    }
+  }
+}
