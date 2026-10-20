@@ -6,9 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.db import get_db
-from backend.hashing import hash_snapshot
 from backend.ml.rules import verify_parcel
 from backend.models import Commitment, Verdict
+from backend.services.evidence_builder import build_attestation, build_evidence_document
 
 router = APIRouter(tags=["verify"])
 
@@ -88,10 +88,12 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
             detail={"error": {"code": "INVALID_STATE", "message": f"Commitment must be funded to verify, current state: {commitment.state}."}},
         )
 
+    policy = _load_policy(commitment.verification_policy_id)
+
     try:
         result = verify_parcel(
             parcel_id=commitment.parcel_id,
-            policy=_load_policy(commitment.verification_policy_id),
+            policy=policy,
             evidence_directory=str(EVIDENCE_DIR),
         )
     except Exception as exc:
@@ -106,74 +108,51 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
             detail={"error": {"code": "INFERENCE_FAILED", "message": "ML module returned unexpected verdict."}},
         )
 
-    observations = result.get("observations", [])
-    quality = result.get("quality", {})
-    source = result.get("source", {})
+    try:
+        evidence_doc, evidence_bytes, evidence_hash = build_evidence_document(
+            verifier_result=result,
+            commitment=commitment,
+            policy=policy,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={"error": {"code": "INFERENCE_FAILED", "message": f"Evidence building failed: {exc}"}},
+        ) from exc
 
-    evidence_doc = {
-        "commitment_id": commitment.commitment_id,
-        "evidence_id": f"evidence-{commitment.parcel_id}-{commitment.season_id}",
-        "verdict": result["verdict"],
-        "verdict_code": result["verdict_code"],
-        "reason_codes": [result.get("reason_code", "")] if result.get("reason_code") else [],
-        "model_version": result.get("model", {}).get("model_version", "rule-based-v1"),
-        "policy_version": commitment.verification_policy_id,
-        "parcel_id": commitment.parcel_id,
-        "season_id": commitment.season_id,
-        "observations": {
-            "total_observations": quality.get("total_rows", len(observations)),
-            "valid_observations": quality.get("valid_count", len(observations)),
-            "vegetated_count": sum(1 for o in observations if o.get("ndvi", 0) > 0.35),
-            "vegetated_fraction": round(
-                sum(1 for o in observations if o.get("ndvi", 0) > 0.35) / max(len(observations), 1), 4
-            ),
-        },
-        "data_provenance": {
-            "provider": source.get("provider", "unknown"),
-            "dataset": source.get("dataset", "unknown"),
-            "bands": ["B04", "B08", "SCL"],
-            "method": "Cloud-masked NDVI mean",
-        },
-        "valid_until": commitment.settle_deadline,
-    }
-
-    evidence_bytes, evidence_hash = hash_snapshot(evidence_doc)
-
-    attestation = {
-        "commitmentId": commitment.commitment_id,
-        "planHash": commitment.plan_hash,
-        "evidenceHash": evidence_hash,
-        "verdict": result["verdict_code"],
-        "validUntil": commitment.settle_deadline,
-    }
+    attestation = build_attestation(
+        commitment=commitment,
+        evidence_hash=evidence_hash,
+        verdict_code=result["verdict_code"],
+    )
 
     signature = _sign_attestation(attestation)
 
     verdict = Verdict(
-        evidence_id=evidence_doc["evidence_id"],
+        evidence_id=f"evidence-{commitment.parcel_id}-{commitment.season_id}",
         commitment_id=commitment.commitment_id,
         evidence_hash=evidence_hash,
         evidence_snapshot=evidence_bytes,
         verdict=result["verdict"],
         verdict_code=result["verdict_code"],
-        reason_codes=evidence_doc["reason_codes"],
+        reason_codes=[result["reason_code"]] if result.get("reason_code") else [],
         attestation=attestation,
         signature=signature,
         valid_until=commitment.settle_deadline,
-        model_version=evidence_doc["model_version"],
-        policy_version=evidence_doc["policy_version"],
+        model_version=result.get("model", {}).get("model_version", "rule-based-v1"),
+        policy_version=commitment.verification_policy_id,
     )
     db.add(verdict)
     db.commit()
 
     return {
         "commitment_id": commitment.commitment_id,
-        "evidence_id": evidence_doc["evidence_id"],
+        "evidence_id": verdict.evidence_id,
         "evidence_hash": evidence_hash,
         "verdict": result["verdict"],
         "verdict_code": result["verdict_code"],
-        "reason_codes": evidence_doc["reason_codes"],
+        "reason_codes": [result["reason_code"]] if result.get("reason_code") else [],
         "attestation": attestation,
         "signature": signature,
-        "snapshot_url": f"/api/v1/evidence/{evidence_doc['evidence_id']}/snapshot",
+        "snapshot_url": f"/api/v1/evidence/{verdict.evidence_id}/snapshot",
     }
