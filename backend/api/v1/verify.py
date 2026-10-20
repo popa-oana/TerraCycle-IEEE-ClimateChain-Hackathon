@@ -17,8 +17,8 @@ from backend.hashing import hash_snapshot
 from backend.ml.rules import verify_parcel
 from backend.models import Commitment, Verdict
 from backend.services.evidence_builder import (
-    build_evidence_document,
     build_attestation,
+    build_evidence_document,
     verify_evidence_document,
 )
 
@@ -121,9 +121,6 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
     # 2. Load verification policy
     policy = _load_policy(commitment.verification_policy_id)
 
-    # 3. Call scientific verifier
-    try:
-        verifier_result = verify_parcel(
     if commitment.plan_snapshot is not None:
         recomputed_hash = "0x" + hashlib.sha256(commitment.plan_snapshot).hexdigest()
         if recomputed_hash != commitment.plan_hash:
@@ -132,10 +129,9 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
                 detail={"error": {"code": "PLAN_HASH_MISMATCH", "message": "The stored plan snapshot no longer matches the registered plan hash."}},
             )
 
-    policy = _load_policy(commitment.verification_policy_id)
-
+    # 3. Call scientific verifier
     try:
-        result = verify_parcel(
+        verifier_result = verify_parcel(
             parcel_id=commitment.parcel_id,
             policy=policy,
             evidence_directory=str(EVIDENCE_DIR),
