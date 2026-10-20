@@ -11,6 +11,10 @@ class Settings(BaseSettings):
 
     database_url: str
     allowed_origins: str = "http://localhost:5173"
+    chain_rpc_url: str = ""
+    chain_id: int = 11155111
+    contract_address: str = ""
+    contract_abi_path: str = ""
 
     @property
     def origins(self) -> list[str]:
