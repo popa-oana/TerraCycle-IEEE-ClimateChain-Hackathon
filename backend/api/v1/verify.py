@@ -17,8 +17,8 @@ from backend.hashing import hash_snapshot
 from backend.ml.rules import verify_parcel
 from backend.models import Commitment, Verdict
 from backend.services.evidence_builder import (
-    build_evidence_document,
     build_attestation,
+    build_evidence_document,
     verify_evidence_document,
 )
 
@@ -121,6 +121,14 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
     # 2. Load verification policy
     policy = _load_policy(commitment.verification_policy_id)
 
+    if commitment.plan_snapshot is not None:
+        recomputed_hash = "0x" + hashlib.sha256(commitment.plan_snapshot).hexdigest()
+        if recomputed_hash != commitment.plan_hash:
+            raise HTTPException(
+                status_code=409,
+                detail={"error": {"code": "PLAN_HASH_MISMATCH", "message": "The stored plan snapshot no longer matches the registered plan hash."}},
+            )
+
     # 3. Call scientific verifier
     try:
         verifier_result = verify_parcel(
@@ -129,18 +137,10 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
             evidence_directory=str(EVIDENCE_DIR),
         )
     except Exception as exc:
-            raise HTTPException(
-                status_code=502,
-                detail={"error": {"code": "INFERENCE_FAILED", "message": f"ML module error: {exc}"}},
-            ) from exc
-
-    if commitment.plan_snapshot is not None:
-        recomputed_hash = "0x" + hashlib.sha256(commitment.plan_snapshot).hexdigest()
-        if recomputed_hash != commitment.plan_hash:
-            raise HTTPException(
-                status_code=409,
-                detail={"error": {"code": "PLAN_HASH_MISMATCH", "message": "The stored plan snapshot no longer matches the registered plan hash."}},
-            )
+        raise HTTPException(
+            status_code=502,
+            detail={"error": {"code": "INFERENCE_FAILED", "message": f"ML module error: {exc}"}},
+        ) from exc
 
     # Validate verdict
     if verifier_result.get("verdict") not in ("conform", "nonconform", "inconclusive"):
