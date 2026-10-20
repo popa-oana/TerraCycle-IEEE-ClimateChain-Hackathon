@@ -130,11 +130,13 @@ def main() -> int:
 
         print(f"--- {pid} ({n_obs} observations) ---")
 
-        # Convert timestamps to elapsed days
+        # Convert timestamps to elapsed days. The parcel's first observation is
+        # the single time reference for both fitting and the prediction grid.
         timestamps_ns = parcel_df["_ts"].values.astype("datetime64[ns]").astype(np.int64)
         ndvi_values = parcel_df["_ndvi"].values.astype(float)
+        train_origin_ns = int(timestamps_ns.min())
         elapsed_days, ndvi_values = observations_to_training_data(
-            ndvi_values, timestamps_ns
+            ndvi_values, timestamps_ns, origin_ns=train_origin_ns
         )
 
         # Train model
@@ -157,11 +159,13 @@ def main() -> int:
         end_date = last_ts.strftime("%Y-%m-%d")
         date_grid = _build_date_grid(start_date, end_date, args.grid_points)
 
-        # Convert grid to elapsed days
+        # Convert grid to elapsed days using the SAME training origin
         grid_datetimes = pd.to_datetime(date_grid, utc=True)
         grid_timestamps_ns = grid_datetimes.values.astype("datetime64[ns]").astype(np.int64)
         grid_elapsed, _ = observations_to_training_data(
-            np.zeros(len(grid_timestamps_ns)), grid_timestamps_ns
+            np.zeros(len(grid_timestamps_ns)),
+            grid_timestamps_ns,
+            origin_ns=train_origin_ns,
         )
 
         pred = predict_with_uncertainty(result["model"], grid_elapsed)

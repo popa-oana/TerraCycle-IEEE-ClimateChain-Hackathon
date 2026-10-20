@@ -177,9 +177,22 @@ def evaluate_parcel(
     test_ts = timestamps[test_idx]
     test_ndvi = ndvi_values[test_idx]
 
-    # Convert to elapsed days for GPR
-    train_elapsed, train_ndvi_clean = observations_to_training_data(train_ndvi, train_ts.astype(np.int64))
-    test_elapsed, test_ndvi_clean = observations_to_training_data(test_ndvi, test_ts.astype(np.int64))
+    # Single consistent time reference: the first TRAINING observation.
+    #
+    # Both training and test coordinates MUST be measured from this origin.
+    # Previously the test subset was converted on its own, which reset its
+    # origin to the first TEST observation; the fitted model was then queried at
+    # early-season coordinates (elapsed days 0..k) instead of the true
+    # held-out coordinates, producing meaningless predictions.
+    train_origin_ns = int(train_ts.astype(np.int64).min())
+
+    # Convert to elapsed days for GPR (same origin for train and test)
+    train_elapsed, train_ndvi_clean = observations_to_training_data(
+        train_ndvi, train_ts.astype(np.int64), origin_ns=train_origin_ns
+    )
+    test_elapsed, test_ndvi_clean = observations_to_training_data(
+        test_ndvi, test_ts.astype(np.int64), origin_ns=train_origin_ns
+    )
 
     # Train GPR on training data only
     result = train_parcel_model(parcel_id, train_elapsed, train_ndvi_clean)

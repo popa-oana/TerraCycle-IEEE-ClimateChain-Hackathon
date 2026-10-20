@@ -1,0 +1,1605 @@
+{
+  "generated_at": "2026-10-20T07:13:15Z",
+  "title": "TerraCycle Proof — corrected GPR NDVI trajectory insights (Day 6C.3)",
+  "data_source": {
+    "observations_file": "data/features/observations_clean_4parcels.csv",
+    "corrected_evaluation_file": "data/ml/evaluation_corrected/trajectory_evaluation_corrected.json",
+    "satellite": "Sentinel-2 L2A",
+    "index": "NDVI = (B08 - B04) / (B08 + B04)"
+  },
+  "method": {
+    "model": "Gaussian Process Regression, one model per parcel",
+    "split": "chronological: first 75% of observations train, last 25% test",
+    "baseline": "persistence (last training NDVI value)",
+    "time_origin": "single fixed origin = first training observation (corrected Day 6C.2B)",
+    "reanalysis_note": "REANALYSIS of the previously inspected Day 6C.2 test set. Model kernel, hyperparameters, chronological split and persistence baseline are unchanged; only the time origin used for held-out predictions is fixed. This is not a fresh independent benchmark."
+  },
+  "disclaimer": "These charts and metrics describe NDVI prediction only. They do not establish agronomic compliance, certification, or blockchain settlement eligibility.",
+  "parcels": [
+    {
+      "parcel_id": "parcel_01",
+      "observations": [
+        {
+          "timestamp": "2024-03-23T00:00:00Z",
+          "ndvi": 0.853875
+        },
+        {
+          "timestamp": "2024-03-28T00:00:00Z",
+          "ndvi": 0.890062
+        },
+        {
+          "timestamp": "2024-04-02T00:00:00Z",
+          "ndvi": 0.920044
+        },
+        {
+          "timestamp": "2024-04-12T00:00:00Z",
+          "ndvi": 0.885312
+        },
+        {
+          "timestamp": "2024-05-02T00:00:00Z",
+          "ndvi": 0.88953
+        },
+        {
+          "timestamp": "2024-05-07T00:00:00Z",
+          "ndvi": 0.818848
+        },
+        {
+          "timestamp": "2024-05-22T00:00:00Z",
+          "ndvi": 0.666624
+        },
+        {
+          "timestamp": "2024-05-27T00:00:00Z",
+          "ndvi": 0.757383
+        },
+        {
+          "timestamp": "2024-06-01T00:00:00Z",
+          "ndvi": 0.608048
+        },
+        {
+          "timestamp": "2024-06-06T00:00:00Z",
+          "ndvi": 0.373463
+        },
+        {
+          "timestamp": "2024-06-11T00:00:00Z",
+          "ndvi": 0.226821
+        },
+        {
+          "timestamp": "2024-06-16T00:00:00Z",
+          "ndvi": 0.215442
+        },
+        {
+          "timestamp": "2024-06-21T00:00:00Z",
+          "ndvi": 0.21401
+        },
+        {
+          "timestamp": "2024-06-26T00:00:00Z",
+          "ndvi": 0.199282
+        },
+        {
+          "timestamp": "2024-07-01T00:00:00Z",
+          "ndvi": 0.196978
+        },
+        {
+          "timestamp": "2024-07-06T00:00:00Z",
+          "ndvi": 0.197105
+        },
+        {
+          "timestamp": "2024-07-11T00:00:00Z",
+          "ndvi": 0.210055
+        },
+        {
+          "timestamp": "2024-07-16T00:00:00Z",
+          "ndvi": 0.215708
+        },
+        {
+          "timestamp": "2024-07-26T00:00:00Z",
+          "ndvi": 0.199685
+        },
+        {
+          "timestamp": "2024-07-31T00:00:00Z",
+          "ndvi": 0.181136
+        },
+        {
+          "timestamp": "2024-08-10T00:00:00Z",
+          "ndvi": 0.197359
+        },
+        {
+          "timestamp": "2024-08-25T00:00:00Z",
+          "ndvi": 0.173113
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "ndvi": 0.161626
+        },
+        {
+          "timestamp": "2024-09-14T00:00:00Z",
+          "ndvi": 0.174087
+        },
+        {
+          "timestamp": "2024-09-19T00:00:00Z",
+          "ndvi": 0.175118
+        },
+        {
+          "timestamp": "2024-09-24T00:00:00Z",
+          "ndvi": 0.194079
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "ndvi": 0.243118
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "ndvi": 0.252993
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "ndvi": 0.151147
+        }
+      ],
+      "n_train": 21,
+      "n_test": 8,
+      "split_date": "2024-08-10T00:00:00Z",
+      "test_period_start": "2024-08-25T00:00:00Z",
+      "test_period_end": "2024-10-24T00:00:00Z",
+      "gpr_predictions": [
+        {
+          "timestamp": "2024-08-25T00:00:00Z",
+          "predicted_ndvi": 0.294278,
+          "predicted_std": 0.177002,
+          "lower_95": -0.052645,
+          "upper_95": 0.641201
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "predicted_ndvi": 0.353428,
+          "predicted_std": 0.237604,
+          "lower_95": -0.112276,
+          "upper_95": 0.819131
+        },
+        {
+          "timestamp": "2024-09-14T00:00:00Z",
+          "predicted_ndvi": 0.396664,
+          "predicted_std": 0.266685,
+          "lower_95": -0.126039,
+          "upper_95": 0.919367
+        },
+        {
+          "timestamp": "2024-09-19T00:00:00Z",
+          "predicted_ndvi": 0.412732,
+          "predicted_std": 0.274397,
+          "lower_95": -0.125086,
+          "upper_95": 0.950549
+        },
+        {
+          "timestamp": "2024-09-24T00:00:00Z",
+          "predicted_ndvi": 0.425698,
+          "predicted_std": 0.279385,
+          "lower_95": -0.121898,
+          "upper_95": 0.973293
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "predicted_ndvi": 0.455677,
+          "predicted_std": 0.286533,
+          "lower_95": -0.105928,
+          "upper_95": 1.017281
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "predicted_ndvi": 0.459568,
+          "predicted_std": 0.286988,
+          "lower_95": -0.102928,
+          "upper_95": 1.022065
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "predicted_ndvi": 0.462574,
+          "predicted_std": 0.287261,
+          "lower_95": -0.100457,
+          "upper_95": 1.025605
+        }
+      ],
+      "persistence_predictions": [
+        {
+          "timestamp": "2024-08-25T00:00:00Z",
+          "predicted_ndvi": 0.197359
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "predicted_ndvi": 0.197359
+        },
+        {
+          "timestamp": "2024-09-14T00:00:00Z",
+          "predicted_ndvi": 0.197359
+        },
+        {
+          "timestamp": "2024-09-19T00:00:00Z",
+          "predicted_ndvi": 0.197359
+        },
+        {
+          "timestamp": "2024-09-24T00:00:00Z",
+          "predicted_ndvi": 0.197359
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "predicted_ndvi": 0.197359
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "predicted_ndvi": 0.197359
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "predicted_ndvi": 0.197359
+        }
+      ],
+      "metrics": {
+        "gpr_mae": 0.216917,
+        "gpr_rmse": 0.222474,
+        "baseline_mae": 0.032047,
+        "baseline_rmse": 0.035771,
+        "observed_interval_coverage": 1.0,
+        "gpr_better_than_persistence": false
+      },
+      "explanation": "For parcel_01, a Gaussian process was trained on the first 21 genuine Sentinel-2 NDVI observations and asked to predict the later 8 observations it had not seen. Its mean absolute error was 0.217, while simply repeating the last observed value (persistence) achieved 0.032. On this parcel persistence performed better. The shaded band is the model's own nominal 95% predictive interval; it is a model-based estimate, not a guaranteed 95% coverage.",
+      "limitations": [
+        "Only four parcels and a single historical growing season (2024) were available.",
+        "Held-out test sets are small (8-16 observations), so the error estimates are noisy.",
+        "The shaded band is a nominal, uncalibrated GPR predictive interval; observed coverage on a handful of points does not prove calibration.",
+        "Persistence outperformed the GP on every parcel, so the GP is not a reliable forecaster for this seasonal extrapolation.",
+        "Predicting late-season NDVI from an early-season model is genuine extrapolation and is inherently difficult.",
+        "Results describe NDVI prediction only and cannot authorize blockchain settlement."
+      ]
+    },
+    {
+      "parcel_id": "parcel_02",
+      "observations": [
+        {
+          "timestamp": "2024-03-03T00:00:00Z",
+          "ndvi": 0.13148
+        },
+        {
+          "timestamp": "2024-03-13T00:00:00Z",
+          "ndvi": 0.259596
+        },
+        {
+          "timestamp": "2024-03-21T00:00:00Z",
+          "ndvi": 0.373269
+        },
+        {
+          "timestamp": "2024-03-23T00:00:00Z",
+          "ndvi": 0.310444
+        },
+        {
+          "timestamp": "2024-03-28T00:00:00Z",
+          "ndvi": 0.376502
+        },
+        {
+          "timestamp": "2024-04-02T00:00:00Z",
+          "ndvi": 0.326292
+        },
+        {
+          "timestamp": "2024-04-05T00:00:00Z",
+          "ndvi": 0.318476
+        },
+        {
+          "timestamp": "2024-04-10T00:00:00Z",
+          "ndvi": 0.325689
+        },
+        {
+          "timestamp": "2024-04-12T00:00:00Z",
+          "ndvi": 0.303974
+        },
+        {
+          "timestamp": "2024-04-22T00:00:00Z",
+          "ndvi": 0.371578
+        },
+        {
+          "timestamp": "2024-05-02T00:00:00Z",
+          "ndvi": 0.345479
+        },
+        {
+          "timestamp": "2024-05-05T00:00:00Z",
+          "ndvi": 0.38338
+        },
+        {
+          "timestamp": "2024-05-07T00:00:00Z",
+          "ndvi": 0.389229
+        },
+        {
+          "timestamp": "2024-05-12T00:00:00Z",
+          "ndvi": 0.432417
+        },
+        {
+          "timestamp": "2024-05-25T00:00:00Z",
+          "ndvi": 0.613836
+        },
+        {
+          "timestamp": "2024-05-27T00:00:00Z",
+          "ndvi": 0.624844
+        },
+        {
+          "timestamp": "2024-05-30T00:00:00Z",
+          "ndvi": 0.689613
+        },
+        {
+          "timestamp": "2024-06-01T00:00:00Z",
+          "ndvi": 0.734641
+        },
+        {
+          "timestamp": "2024-06-04T00:00:00Z",
+          "ndvi": 0.799246
+        },
+        {
+          "timestamp": "2024-06-06T00:00:00Z",
+          "ndvi": 0.790207
+        },
+        {
+          "timestamp": "2024-06-09T00:00:00Z",
+          "ndvi": 0.616327
+        },
+        {
+          "timestamp": "2024-06-11T00:00:00Z",
+          "ndvi": 0.749625
+        },
+        {
+          "timestamp": "2024-06-14T00:00:00Z",
+          "ndvi": 0.822542
+        },
+        {
+          "timestamp": "2024-06-16T00:00:00Z",
+          "ndvi": 0.770045
+        },
+        {
+          "timestamp": "2024-06-19T00:00:00Z",
+          "ndvi": 0.784502
+        },
+        {
+          "timestamp": "2024-06-21T00:00:00Z",
+          "ndvi": 0.728191
+        },
+        {
+          "timestamp": "2024-06-24T00:00:00Z",
+          "ndvi": 0.724537
+        },
+        {
+          "timestamp": "2024-06-26T00:00:00Z",
+          "ndvi": 0.674724
+        },
+        {
+          "timestamp": "2024-06-29T00:00:00Z",
+          "ndvi": 0.762641
+        },
+        {
+          "timestamp": "2024-07-01T00:00:00Z",
+          "ndvi": 0.701257
+        },
+        {
+          "timestamp": "2024-07-06T00:00:00Z",
+          "ndvi": 0.732681
+        },
+        {
+          "timestamp": "2024-07-09T00:00:00Z",
+          "ndvi": 0.663016
+        },
+        {
+          "timestamp": "2024-07-11T00:00:00Z",
+          "ndvi": 0.591727
+        },
+        {
+          "timestamp": "2024-07-14T00:00:00Z",
+          "ndvi": 0.517003
+        },
+        {
+          "timestamp": "2024-07-16T00:00:00Z",
+          "ndvi": 0.446496
+        },
+        {
+          "timestamp": "2024-07-19T00:00:00Z",
+          "ndvi": 0.370803
+        },
+        {
+          "timestamp": "2024-07-24T00:00:00Z",
+          "ndvi": 0.368917
+        },
+        {
+          "timestamp": "2024-07-26T00:00:00Z",
+          "ndvi": 0.358594
+        },
+        {
+          "timestamp": "2024-07-29T00:00:00Z",
+          "ndvi": 0.320971
+        },
+        {
+          "timestamp": "2024-07-31T00:00:00Z",
+          "ndvi": 0.305293
+        },
+        {
+          "timestamp": "2024-08-05T00:00:00Z",
+          "ndvi": 0.253501
+        },
+        {
+          "timestamp": "2024-08-08T00:00:00Z",
+          "ndvi": 0.265339
+        },
+        {
+          "timestamp": "2024-08-10T00:00:00Z",
+          "ndvi": 0.25209
+        },
+        {
+          "timestamp": "2024-08-13T00:00:00Z",
+          "ndvi": 0.236609
+        },
+        {
+          "timestamp": "2024-08-18T00:00:00Z",
+          "ndvi": 0.21843
+        },
+        {
+          "timestamp": "2024-08-23T00:00:00Z",
+          "ndvi": 0.199068
+        },
+        {
+          "timestamp": "2024-08-25T00:00:00Z",
+          "ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-09-02T00:00:00Z",
+          "ndvi": 0.190542
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "ndvi": 0.197857
+        },
+        {
+          "timestamp": "2024-09-07T00:00:00Z",
+          "ndvi": 0.148231
+        },
+        {
+          "timestamp": "2024-09-12T00:00:00Z",
+          "ndvi": 0.186164
+        },
+        {
+          "timestamp": "2024-09-14T00:00:00Z",
+          "ndvi": 0.188079
+        },
+        {
+          "timestamp": "2024-09-17T00:00:00Z",
+          "ndvi": 0.193211
+        },
+        {
+          "timestamp": "2024-09-22T00:00:00Z",
+          "ndvi": 0.217461
+        },
+        {
+          "timestamp": "2024-09-27T00:00:00Z",
+          "ndvi": 0.20344
+        },
+        {
+          "timestamp": "2024-10-02T00:00:00Z",
+          "ndvi": 0.215121
+        },
+        {
+          "timestamp": "2024-10-07T00:00:00Z",
+          "ndvi": 0.217361
+        },
+        {
+          "timestamp": "2024-10-12T00:00:00Z",
+          "ndvi": 0.22205
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "ndvi": 0.222846
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "ndvi": 0.243459
+        },
+        {
+          "timestamp": "2024-10-22T00:00:00Z",
+          "ndvi": 0.223152
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "ndvi": 0.189188
+        },
+        {
+          "timestamp": "2024-10-29T00:00:00Z",
+          "ndvi": 0.187954
+        }
+      ],
+      "n_train": 47,
+      "n_test": 16,
+      "split_date": "2024-08-25T00:00:00Z",
+      "test_period_start": "2024-09-02T00:00:00Z",
+      "test_period_end": "2024-10-29T00:00:00Z",
+      "gpr_predictions": [
+        {
+          "timestamp": "2024-09-02T00:00:00Z",
+          "predicted_ndvi": 0.208421,
+          "predicted_std": 0.081007,
+          "lower_95": 0.049647,
+          "upper_95": 0.367194
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "predicted_ndvi": 0.213285,
+          "predicted_std": 0.092255,
+          "lower_95": 0.032466,
+          "upper_95": 0.394104
+        },
+        {
+          "timestamp": "2024-09-07T00:00:00Z",
+          "predicted_ndvi": 0.222094,
+          "predicted_std": 0.109071,
+          "lower_95": 0.008315,
+          "upper_95": 0.435873
+        },
+        {
+          "timestamp": "2024-09-12T00:00:00Z",
+          "predicted_ndvi": 0.239608,
+          "predicted_std": 0.135411,
+          "lower_95": -0.025797,
+          "upper_95": 0.505013
+        },
+        {
+          "timestamp": "2024-09-14T00:00:00Z",
+          "predicted_ndvi": 0.247262,
+          "predicted_std": 0.145085,
+          "lower_95": -0.037104,
+          "upper_95": 0.531628
+        },
+        {
+          "timestamp": "2024-09-17T00:00:00Z",
+          "predicted_ndvi": 0.259141,
+          "predicted_std": 0.158554,
+          "lower_95": -0.051625,
+          "upper_95": 0.569907
+        },
+        {
+          "timestamp": "2024-09-22T00:00:00Z",
+          "predicted_ndvi": 0.279401,
+          "predicted_std": 0.178188,
+          "lower_95": -0.069849,
+          "upper_95": 0.62865
+        },
+        {
+          "timestamp": "2024-09-27T00:00:00Z",
+          "predicted_ndvi": 0.299494,
+          "predicted_std": 0.19447,
+          "lower_95": -0.081666,
+          "upper_95": 0.680655
+        },
+        {
+          "timestamp": "2024-10-02T00:00:00Z",
+          "predicted_ndvi": 0.318827,
+          "predicted_std": 0.207745,
+          "lower_95": -0.088354,
+          "upper_95": 0.726008
+        },
+        {
+          "timestamp": "2024-10-07T00:00:00Z",
+          "predicted_ndvi": 0.337023,
+          "predicted_std": 0.218426,
+          "lower_95": -0.091092,
+          "upper_95": 0.765139
+        },
+        {
+          "timestamp": "2024-10-12T00:00:00Z",
+          "predicted_ndvi": 0.353866,
+          "predicted_std": 0.226923,
+          "lower_95": -0.090903,
+          "upper_95": 0.798636
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "predicted_ndvi": 0.360199,
+          "predicted_std": 0.229797,
+          "lower_95": -0.090203,
+          "upper_95": 0.810602
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "predicted_ndvi": 0.374997,
+          "predicted_std": 0.235867,
+          "lower_95": -0.087302,
+          "upper_95": 0.837295
+        },
+        {
+          "timestamp": "2024-10-22T00:00:00Z",
+          "predicted_ndvi": 0.383168,
+          "predicted_std": 0.238844,
+          "lower_95": -0.084967,
+          "upper_95": 0.851303
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "predicted_ndvi": 0.388326,
+          "predicted_std": 0.240591,
+          "lower_95": -0.083232,
+          "upper_95": 0.859884
+        },
+        {
+          "timestamp": "2024-10-29T00:00:00Z",
+          "predicted_ndvi": 0.400237,
+          "predicted_std": 0.24424,
+          "lower_95": -0.078473,
+          "upper_95": 0.878948
+        }
+      ],
+      "persistence_predictions": [
+        {
+          "timestamp": "2024-09-02T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-09-07T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-09-12T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-09-14T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-09-17T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-09-22T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-09-27T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-10-02T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-10-07T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-10-12T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-10-22T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        },
+        {
+          "timestamp": "2024-10-29T00:00:00Z",
+          "predicted_ndvi": 0.196773
+        }
+      ],
+      "metrics": {
+        "gpr_mae": 0.102452,
+        "gpr_rmse": 0.11692,
+        "baseline_mae": 0.017864,
+        "baseline_rmse": 0.022583,
+        "observed_interval_coverage": 1.0,
+        "gpr_better_than_persistence": false
+      },
+      "explanation": "For parcel_02, a Gaussian process was trained on the first 47 genuine Sentinel-2 NDVI observations and asked to predict the later 16 observations it had not seen. Its mean absolute error was 0.102, while simply repeating the last observed value (persistence) achieved 0.018. On this parcel persistence performed better. The shaded band is the model's own nominal 95% predictive interval; it is a model-based estimate, not a guaranteed 95% coverage.",
+      "limitations": [
+        "Only four parcels and a single historical growing season (2024) were available.",
+        "Held-out test sets are small (8-16 observations), so the error estimates are noisy.",
+        "The shaded band is a nominal, uncalibrated GPR predictive interval; observed coverage on a handful of points does not prove calibration.",
+        "Persistence outperformed the GP on every parcel, so the GP is not a reliable forecaster for this seasonal extrapolation.",
+        "Predicting late-season NDVI from an early-season model is genuine extrapolation and is inherently difficult.",
+        "Results describe NDVI prediction only and cannot authorize blockchain settlement."
+      ]
+    },
+    {
+      "parcel_id": "parcel_03",
+      "observations": [
+        {
+          "timestamp": "2024-03-21T00:00:00Z",
+          "ndvi": 0.348498
+        },
+        {
+          "timestamp": "2024-03-23T00:00:00Z",
+          "ndvi": 0.343545
+        },
+        {
+          "timestamp": "2024-03-28T00:00:00Z",
+          "ndvi": 0.401974
+        },
+        {
+          "timestamp": "2024-04-02T00:00:00Z",
+          "ndvi": 0.396611
+        },
+        {
+          "timestamp": "2024-04-05T00:00:00Z",
+          "ndvi": 0.405523
+        },
+        {
+          "timestamp": "2024-04-10T00:00:00Z",
+          "ndvi": 0.425101
+        },
+        {
+          "timestamp": "2024-04-12T00:00:00Z",
+          "ndvi": 0.402132
+        },
+        {
+          "timestamp": "2024-04-20T00:00:00Z",
+          "ndvi": 0.458892
+        },
+        {
+          "timestamp": "2024-05-02T00:00:00Z",
+          "ndvi": 0.539477
+        },
+        {
+          "timestamp": "2024-05-05T00:00:00Z",
+          "ndvi": 0.573388
+        },
+        {
+          "timestamp": "2024-05-07T00:00:00Z",
+          "ndvi": 0.561113
+        },
+        {
+          "timestamp": "2024-05-10T00:00:00Z",
+          "ndvi": 0.531385
+        },
+        {
+          "timestamp": "2024-05-12T00:00:00Z",
+          "ndvi": 0.601243
+        },
+        {
+          "timestamp": "2024-05-25T00:00:00Z",
+          "ndvi": 0.729135
+        },
+        {
+          "timestamp": "2024-05-27T00:00:00Z",
+          "ndvi": 0.73305
+        },
+        {
+          "timestamp": "2024-05-30T00:00:00Z",
+          "ndvi": 0.755974
+        },
+        {
+          "timestamp": "2024-06-01T00:00:00Z",
+          "ndvi": 0.733843
+        },
+        {
+          "timestamp": "2024-06-04T00:00:00Z",
+          "ndvi": 0.75204
+        },
+        {
+          "timestamp": "2024-06-06T00:00:00Z",
+          "ndvi": 0.721796
+        },
+        {
+          "timestamp": "2024-06-11T00:00:00Z",
+          "ndvi": 0.651603
+        },
+        {
+          "timestamp": "2024-06-14T00:00:00Z",
+          "ndvi": 0.697652
+        },
+        {
+          "timestamp": "2024-06-16T00:00:00Z",
+          "ndvi": 0.653141
+        },
+        {
+          "timestamp": "2024-06-19T00:00:00Z",
+          "ndvi": 0.654089
+        },
+        {
+          "timestamp": "2024-06-21T00:00:00Z",
+          "ndvi": 0.604073
+        },
+        {
+          "timestamp": "2024-06-24T00:00:00Z",
+          "ndvi": 0.592158
+        },
+        {
+          "timestamp": "2024-06-26T00:00:00Z",
+          "ndvi": 0.547349
+        },
+        {
+          "timestamp": "2024-06-29T00:00:00Z",
+          "ndvi": 0.612051
+        },
+        {
+          "timestamp": "2024-07-01T00:00:00Z",
+          "ndvi": 0.579628
+        },
+        {
+          "timestamp": "2024-07-06T00:00:00Z",
+          "ndvi": 0.604994
+        },
+        {
+          "timestamp": "2024-07-09T00:00:00Z",
+          "ndvi": 0.548572
+        },
+        {
+          "timestamp": "2024-07-11T00:00:00Z",
+          "ndvi": 0.487669
+        },
+        {
+          "timestamp": "2024-07-14T00:00:00Z",
+          "ndvi": 0.418939
+        },
+        {
+          "timestamp": "2024-07-16T00:00:00Z",
+          "ndvi": 0.361302
+        },
+        {
+          "timestamp": "2024-07-19T00:00:00Z",
+          "ndvi": 0.308766
+        },
+        {
+          "timestamp": "2024-07-24T00:00:00Z",
+          "ndvi": 0.323741
+        },
+        {
+          "timestamp": "2024-07-26T00:00:00Z",
+          "ndvi": 0.328829
+        },
+        {
+          "timestamp": "2024-07-29T00:00:00Z",
+          "ndvi": 0.291717
+        },
+        {
+          "timestamp": "2024-07-31T00:00:00Z",
+          "ndvi": 0.287898
+        },
+        {
+          "timestamp": "2024-08-05T00:00:00Z",
+          "ndvi": 0.241614
+        },
+        {
+          "timestamp": "2024-08-08T00:00:00Z",
+          "ndvi": 0.254038
+        },
+        {
+          "timestamp": "2024-08-10T00:00:00Z",
+          "ndvi": 0.241897
+        },
+        {
+          "timestamp": "2024-08-13T00:00:00Z",
+          "ndvi": 0.240936
+        },
+        {
+          "timestamp": "2024-08-18T00:00:00Z",
+          "ndvi": 0.231141
+        },
+        {
+          "timestamp": "2024-08-23T00:00:00Z",
+          "ndvi": 0.229034
+        },
+        {
+          "timestamp": "2024-08-25T00:00:00Z",
+          "ndvi": 0.230936
+        },
+        {
+          "timestamp": "2024-09-02T00:00:00Z",
+          "ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "ndvi": 0.212449
+        },
+        {
+          "timestamp": "2024-09-12T00:00:00Z",
+          "ndvi": 0.201073
+        },
+        {
+          "timestamp": "2024-09-14T00:00:00Z",
+          "ndvi": 0.209702
+        },
+        {
+          "timestamp": "2024-09-17T00:00:00Z",
+          "ndvi": 0.219901
+        },
+        {
+          "timestamp": "2024-09-19T00:00:00Z",
+          "ndvi": 0.201754
+        },
+        {
+          "timestamp": "2024-09-22T00:00:00Z",
+          "ndvi": 0.24229
+        },
+        {
+          "timestamp": "2024-09-24T00:00:00Z",
+          "ndvi": 0.240282
+        },
+        {
+          "timestamp": "2024-09-27T00:00:00Z",
+          "ndvi": 0.235073
+        },
+        {
+          "timestamp": "2024-10-02T00:00:00Z",
+          "ndvi": 0.245714
+        },
+        {
+          "timestamp": "2024-10-07T00:00:00Z",
+          "ndvi": 0.252319
+        },
+        {
+          "timestamp": "2024-10-12T00:00:00Z",
+          "ndvi": 0.262407
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "ndvi": 0.268999
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "ndvi": 0.276841
+        },
+        {
+          "timestamp": "2024-10-22T00:00:00Z",
+          "ndvi": 0.254299
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "ndvi": 0.208717
+        },
+        {
+          "timestamp": "2024-10-29T00:00:00Z",
+          "ndvi": 0.198591
+        }
+      ],
+      "n_train": 46,
+      "n_test": 16,
+      "split_date": "2024-09-02T00:00:00Z",
+      "test_period_start": "2024-09-04T00:00:00Z",
+      "test_period_end": "2024-10-29T00:00:00Z",
+      "gpr_predictions": [
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "predicted_ndvi": 0.208638,
+          "predicted_std": 0.031242,
+          "lower_95": 0.147404,
+          "upper_95": 0.269871
+        },
+        {
+          "timestamp": "2024-09-12T00:00:00Z",
+          "predicted_ndvi": 0.234332,
+          "predicted_std": 0.074867,
+          "lower_95": 0.087593,
+          "upper_95": 0.38107
+        },
+        {
+          "timestamp": "2024-09-14T00:00:00Z",
+          "predicted_ndvi": 0.244176,
+          "predicted_std": 0.085541,
+          "lower_95": 0.076517,
+          "upper_95": 0.411835
+        },
+        {
+          "timestamp": "2024-09-17T00:00:00Z",
+          "predicted_ndvi": 0.260082,
+          "predicted_std": 0.100109,
+          "lower_95": 0.063867,
+          "upper_95": 0.456296
+        },
+        {
+          "timestamp": "2024-09-19T00:00:00Z",
+          "predicted_ndvi": 0.271094,
+          "predicted_std": 0.10879,
+          "lower_95": 0.057865,
+          "upper_95": 0.484323
+        },
+        {
+          "timestamp": "2024-09-22T00:00:00Z",
+          "predicted_ndvi": 0.287762,
+          "predicted_std": 0.120276,
+          "lower_95": 0.05202,
+          "upper_95": 0.523503
+        },
+        {
+          "timestamp": "2024-09-24T00:00:00Z",
+          "predicted_ndvi": 0.298767,
+          "predicted_std": 0.126959,
+          "lower_95": 0.049928,
+          "upper_95": 0.547606
+        },
+        {
+          "timestamp": "2024-09-27T00:00:00Z",
+          "predicted_ndvi": 0.314853,
+          "predicted_std": 0.13564,
+          "lower_95": 0.048998,
+          "upper_95": 0.580708
+        },
+        {
+          "timestamp": "2024-10-02T00:00:00Z",
+          "predicted_ndvi": 0.339961,
+          "predicted_std": 0.146988,
+          "lower_95": 0.051864,
+          "upper_95": 0.628058
+        },
+        {
+          "timestamp": "2024-10-07T00:00:00Z",
+          "predicted_ndvi": 0.362416,
+          "predicted_std": 0.155175,
+          "lower_95": 0.058272,
+          "upper_95": 0.666559
+        },
+        {
+          "timestamp": "2024-10-12T00:00:00Z",
+          "predicted_ndvi": 0.381999,
+          "predicted_std": 0.160968,
+          "lower_95": 0.066501,
+          "upper_95": 0.697497
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "predicted_ndvi": 0.389033,
+          "predicted_std": 0.162762,
+          "lower_95": 0.07002,
+          "upper_95": 0.708046
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "predicted_ndvi": 0.404717,
+          "predicted_std": 0.166234,
+          "lower_95": 0.078897,
+          "upper_95": 0.730536
+        },
+        {
+          "timestamp": "2024-10-22T00:00:00Z",
+          "predicted_ndvi": 0.4129,
+          "predicted_std": 0.167765,
+          "lower_95": 0.084082,
+          "upper_95": 0.741719
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "predicted_ndvi": 0.417883,
+          "predicted_std": 0.168603,
+          "lower_95": 0.087421,
+          "upper_95": 0.748344
+        },
+        {
+          "timestamp": "2024-10-29T00:00:00Z",
+          "predicted_ndvi": 0.428819,
+          "predicted_std": 0.170198,
+          "lower_95": 0.095231,
+          "upper_95": 0.762407
+        }
+      ],
+      "persistence_predictions": [
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-09-12T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-09-14T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-09-17T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-09-19T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-09-22T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-09-24T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-09-27T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-10-02T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-10-07T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-10-12T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-10-22T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        },
+        {
+          "timestamp": "2024-10-29T00:00:00Z",
+          "predicted_ndvi": 0.203175
+        }
+      ],
+      "metrics": {
+        "gpr_mae": 0.095915,
+        "gpr_rmse": 0.114171,
+        "baseline_mae": 0.030989,
+        "baseline_rmse": 0.039129,
+        "observed_interval_coverage": 1.0,
+        "gpr_better_than_persistence": false
+      },
+      "explanation": "For parcel_03, a Gaussian process was trained on the first 46 genuine Sentinel-2 NDVI observations and asked to predict the later 16 observations it had not seen. Its mean absolute error was 0.096, while simply repeating the last observed value (persistence) achieved 0.031. On this parcel persistence performed better. The shaded band is the model's own nominal 95% predictive interval; it is a model-based estimate, not a guaranteed 95% coverage.",
+      "limitations": [
+        "Only four parcels and a single historical growing season (2024) were available.",
+        "Held-out test sets are small (8-16 observations), so the error estimates are noisy.",
+        "The shaded band is a nominal, uncalibrated GPR predictive interval; observed coverage on a handful of points does not prove calibration.",
+        "Persistence outperformed the GP on every parcel, so the GP is not a reliable forecaster for this seasonal extrapolation.",
+        "Predicting late-season NDVI from an early-season model is genuine extrapolation and is inherently difficult.",
+        "Results describe NDVI prediction only and cannot authorize blockchain settlement."
+      ]
+    },
+    {
+      "parcel_id": "parcel_04",
+      "observations": [
+        {
+          "timestamp": "2024-03-23T00:00:00Z",
+          "ndvi": 0.687842
+        },
+        {
+          "timestamp": "2024-04-02T00:00:00Z",
+          "ndvi": 0.697234
+        },
+        {
+          "timestamp": "2024-04-05T00:00:00Z",
+          "ndvi": 0.69867
+        },
+        {
+          "timestamp": "2024-04-10T00:00:00Z",
+          "ndvi": 0.705477
+        },
+        {
+          "timestamp": "2024-04-12T00:00:00Z",
+          "ndvi": 0.682491
+        },
+        {
+          "timestamp": "2024-04-22T00:00:00Z",
+          "ndvi": 0.798638
+        },
+        {
+          "timestamp": "2024-05-02T00:00:00Z",
+          "ndvi": 0.735665
+        },
+        {
+          "timestamp": "2024-05-05T00:00:00Z",
+          "ndvi": 0.762618
+        },
+        {
+          "timestamp": "2024-05-07T00:00:00Z",
+          "ndvi": 0.767626
+        },
+        {
+          "timestamp": "2024-05-12T00:00:00Z",
+          "ndvi": 0.834289
+        },
+        {
+          "timestamp": "2024-05-22T00:00:00Z",
+          "ndvi": 0.782132
+        },
+        {
+          "timestamp": "2024-05-25T00:00:00Z",
+          "ndvi": 0.849215
+        },
+        {
+          "timestamp": "2024-05-27T00:00:00Z",
+          "ndvi": 0.825664
+        },
+        {
+          "timestamp": "2024-05-30T00:00:00Z",
+          "ndvi": 0.799021
+        },
+        {
+          "timestamp": "2024-06-01T00:00:00Z",
+          "ndvi": 0.726624
+        },
+        {
+          "timestamp": "2024-06-04T00:00:00Z",
+          "ndvi": 0.660688
+        },
+        {
+          "timestamp": "2024-06-06T00:00:00Z",
+          "ndvi": 0.580584
+        },
+        {
+          "timestamp": "2024-06-09T00:00:00Z",
+          "ndvi": 0.468625
+        },
+        {
+          "timestamp": "2024-06-11T00:00:00Z",
+          "ndvi": 0.451049
+        },
+        {
+          "timestamp": "2024-06-14T00:00:00Z",
+          "ndvi": 0.454255
+        },
+        {
+          "timestamp": "2024-06-16T00:00:00Z",
+          "ndvi": 0.426031
+        },
+        {
+          "timestamp": "2024-06-19T00:00:00Z",
+          "ndvi": 0.410138
+        },
+        {
+          "timestamp": "2024-06-21T00:00:00Z",
+          "ndvi": 0.373744
+        },
+        {
+          "timestamp": "2024-06-24T00:00:00Z",
+          "ndvi": 0.335557
+        },
+        {
+          "timestamp": "2024-06-26T00:00:00Z",
+          "ndvi": 0.305385
+        },
+        {
+          "timestamp": "2024-06-29T00:00:00Z",
+          "ndvi": 0.342045
+        },
+        {
+          "timestamp": "2024-07-01T00:00:00Z",
+          "ndvi": 0.306378
+        },
+        {
+          "timestamp": "2024-07-06T00:00:00Z",
+          "ndvi": 0.278151
+        },
+        {
+          "timestamp": "2024-07-09T00:00:00Z",
+          "ndvi": 0.261576
+        },
+        {
+          "timestamp": "2024-07-11T00:00:00Z",
+          "ndvi": 0.238652
+        },
+        {
+          "timestamp": "2024-07-14T00:00:00Z",
+          "ndvi": 0.232775
+        },
+        {
+          "timestamp": "2024-07-16T00:00:00Z",
+          "ndvi": 0.219984
+        },
+        {
+          "timestamp": "2024-07-19T00:00:00Z",
+          "ndvi": 0.208762
+        },
+        {
+          "timestamp": "2024-07-21T00:00:00Z",
+          "ndvi": 0.143532
+        },
+        {
+          "timestamp": "2024-07-24T00:00:00Z",
+          "ndvi": 0.201722
+        },
+        {
+          "timestamp": "2024-07-26T00:00:00Z",
+          "ndvi": 0.22016
+        },
+        {
+          "timestamp": "2024-07-29T00:00:00Z",
+          "ndvi": 0.202037
+        },
+        {
+          "timestamp": "2024-07-31T00:00:00Z",
+          "ndvi": 0.211924
+        },
+        {
+          "timestamp": "2024-08-05T00:00:00Z",
+          "ndvi": 0.190886
+        },
+        {
+          "timestamp": "2024-08-08T00:00:00Z",
+          "ndvi": 0.194355
+        },
+        {
+          "timestamp": "2024-08-10T00:00:00Z",
+          "ndvi": 0.194225
+        },
+        {
+          "timestamp": "2024-08-13T00:00:00Z",
+          "ndvi": 0.191216
+        },
+        {
+          "timestamp": "2024-08-15T00:00:00Z",
+          "ndvi": 0.200061
+        },
+        {
+          "timestamp": "2024-08-18T00:00:00Z",
+          "ndvi": 0.19058
+        },
+        {
+          "timestamp": "2024-08-23T00:00:00Z",
+          "ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-08-25T00:00:00Z",
+          "ndvi": 0.190211
+        },
+        {
+          "timestamp": "2024-09-02T00:00:00Z",
+          "ndvi": 0.178757
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "ndvi": 0.184066
+        },
+        {
+          "timestamp": "2024-09-07T00:00:00Z",
+          "ndvi": 0.164014
+        },
+        {
+          "timestamp": "2024-09-12T00:00:00Z",
+          "ndvi": 0.18298
+        },
+        {
+          "timestamp": "2024-09-17T00:00:00Z",
+          "ndvi": 0.181696
+        },
+        {
+          "timestamp": "2024-09-22T00:00:00Z",
+          "ndvi": 0.201971
+        },
+        {
+          "timestamp": "2024-09-27T00:00:00Z",
+          "ndvi": 0.204405
+        },
+        {
+          "timestamp": "2024-10-07T00:00:00Z",
+          "ndvi": 0.22423
+        },
+        {
+          "timestamp": "2024-10-12T00:00:00Z",
+          "ndvi": 0.238341
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "ndvi": 0.256878
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "ndvi": 0.303917
+        },
+        {
+          "timestamp": "2024-10-22T00:00:00Z",
+          "ndvi": 0.287294
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "ndvi": 0.238573
+        },
+        {
+          "timestamp": "2024-10-29T00:00:00Z",
+          "ndvi": 0.254881
+        }
+      ],
+      "n_train": 45,
+      "n_test": 15,
+      "split_date": "2024-08-23T00:00:00Z",
+      "test_period_start": "2024-08-25T00:00:00Z",
+      "test_period_end": "2024-10-29T00:00:00Z",
+      "gpr_predictions": [
+        {
+          "timestamp": "2024-08-25T00:00:00Z",
+          "predicted_ndvi": 0.191668,
+          "predicted_std": 0.031401,
+          "lower_95": 0.130122,
+          "upper_95": 0.253214
+        },
+        {
+          "timestamp": "2024-09-02T00:00:00Z",
+          "predicted_ndvi": 0.220762,
+          "predicted_std": 0.091831,
+          "lower_95": 0.040773,
+          "upper_95": 0.400751
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "predicted_ndvi": 0.230609,
+          "predicted_std": 0.106474,
+          "lower_95": 0.02192,
+          "upper_95": 0.439299
+        },
+        {
+          "timestamp": "2024-09-07T00:00:00Z",
+          "predicted_ndvi": 0.246162,
+          "predicted_std": 0.126548,
+          "lower_95": -0.001872,
+          "upper_95": 0.494196
+        },
+        {
+          "timestamp": "2024-09-12T00:00:00Z",
+          "predicted_ndvi": 0.272668,
+          "predicted_std": 0.154577,
+          "lower_95": -0.030302,
+          "upper_95": 0.575638
+        },
+        {
+          "timestamp": "2024-09-17T00:00:00Z",
+          "predicted_ndvi": 0.298259,
+          "predicted_std": 0.176188,
+          "lower_95": -0.04707,
+          "upper_95": 0.643588
+        },
+        {
+          "timestamp": "2024-09-22T00:00:00Z",
+          "predicted_ndvi": 0.321827,
+          "predicted_std": 0.19235,
+          "lower_95": -0.055179,
+          "upper_95": 0.698833
+        },
+        {
+          "timestamp": "2024-09-27T00:00:00Z",
+          "predicted_ndvi": 0.342853,
+          "predicted_std": 0.204158,
+          "lower_95": -0.057297,
+          "upper_95": 0.743003
+        },
+        {
+          "timestamp": "2024-10-07T00:00:00Z",
+          "predicted_ndvi": 0.376903,
+          "predicted_std": 0.218588,
+          "lower_95": -0.05153,
+          "upper_95": 0.805336
+        },
+        {
+          "timestamp": "2024-10-12T00:00:00Z",
+          "predicted_ndvi": 0.390193,
+          "predicted_std": 0.222734,
+          "lower_95": -0.046366,
+          "upper_95": 0.826752
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "predicted_ndvi": 0.394886,
+          "predicted_std": 0.224004,
+          "lower_95": -0.044161,
+          "upper_95": 0.833933
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "predicted_ndvi": 0.405212,
+          "predicted_std": 0.226441,
+          "lower_95": -0.038611,
+          "upper_95": 0.849036
+        },
+        {
+          "timestamp": "2024-10-22T00:00:00Z",
+          "predicted_ndvi": 0.410532,
+          "predicted_std": 0.227505,
+          "lower_95": -0.035378,
+          "upper_95": 0.856441
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "predicted_ndvi": 0.413749,
+          "predicted_std": 0.228085,
+          "lower_95": -0.033298,
+          "upper_95": 0.860796
+        },
+        {
+          "timestamp": "2024-10-29T00:00:00Z",
+          "predicted_ndvi": 0.420757,
+          "predicted_std": 0.229184,
+          "lower_95": -0.028443,
+          "upper_95": 0.869957
+        }
+      ],
+      "persistence_predictions": [
+        {
+          "timestamp": "2024-08-25T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-09-02T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-09-04T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-09-07T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-09-12T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-09-17T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-09-22T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-09-27T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-10-07T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-10-12T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-10-14T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-10-19T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-10-22T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-10-24T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        },
+        {
+          "timestamp": "2024-10-29T00:00:00Z",
+          "predicted_ndvi": 0.187155
+        }
+      ],
+      "metrics": {
+        "gpr_mae": 0.109655,
+        "gpr_rmse": 0.119697,
+        "baseline_mae": 0.038228,
+        "baseline_rmse": 0.052241,
+        "observed_interval_coverage": 1.0,
+        "gpr_better_than_persistence": false
+      },
+      "explanation": "For parcel_04, a Gaussian process was trained on the first 45 genuine Sentinel-2 NDVI observations and asked to predict the later 15 observations it had not seen. Its mean absolute error was 0.110, while simply repeating the last observed value (persistence) achieved 0.038. On this parcel persistence performed better. The shaded band is the model's own nominal 95% predictive interval; it is a model-based estimate, not a guaranteed 95% coverage.",
+      "limitations": [
+        "Only four parcels and a single historical growing season (2024) were available.",
+        "Held-out test sets are small (8-16 observations), so the error estimates are noisy.",
+        "The shaded band is a nominal, uncalibrated GPR predictive interval; observed coverage on a handful of points does not prove calibration.",
+        "Persistence outperformed the GP on every parcel, so the GP is not a reliable forecaster for this seasonal extrapolation.",
+        "Predicting late-season NDVI from an early-season model is genuine extrapolation and is inherently difficult.",
+        "Results describe NDVI prediction only and cannot authorize blockchain settlement."
+      ]
+    }
+  ]
+}

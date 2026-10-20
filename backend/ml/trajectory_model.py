@@ -162,6 +162,7 @@ def predict_with_uncertainty(
 def observations_to_training_data(
     observations: np.ndarray,
     timestamps_ns: np.ndarray,
+    origin_ns: int | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Convert observation timestamps and NDVI values to training data.
@@ -172,13 +173,26 @@ def observations_to_training_data(
         NDVI values.
     timestamps_ns : np.ndarray, shape (n,)
         Timestamps in nanoseconds since epoch (UTC).
+    origin_ns : int, optional
+        Timestamp (nanoseconds since epoch, UTC) used as the zero point for
+        elapsed days. If None, the minimum timestamp in ``timestamps_ns`` is
+        used (backward-compatible behaviour).
+
+        A trained model must always be evaluated against coordinates measured
+        from the SAME origin used at fit time. Passing the training origin for
+        held-out observations prevents the origin from being silently reset to
+        the held-out subset's own minimum.
 
     Returns
     -------
     (elapsed_days, ndvi_values) : tuple of np.ndarray
-        elapsed_days is float64 days since the first observation.
+        elapsed_days is float64 days since the chosen origin.
     """
     # Convert nanoseconds to seconds, then to days
     timestamps_s = timestamps_ns.astype(np.float64) / 1e9
-    elapsed_days = (timestamps_s - timestamps_s.min()) / 86400.0
+    if origin_ns is None:
+        origin_s = timestamps_s.min()
+    else:
+        origin_s = float(origin_ns) / 1e9
+    elapsed_days = (timestamps_s - origin_s) / 86400.0
     return elapsed_days, observations.astype(float)
