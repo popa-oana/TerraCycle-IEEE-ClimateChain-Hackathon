@@ -1,0 +1,14 @@
+{
+  "name": "terracycle-signer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "EIP-712 verdict signer for TerraCycle Proof",
+  "main": "sign_verdict.mjs",
+  "scripts": {
+    "sign": "node sign_verdict.mjs"
+  },
+  "dependencies": {
+    "ethers": "^6.13.4"
+  }
+}
