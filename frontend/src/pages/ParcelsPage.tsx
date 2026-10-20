@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { getParcels, ApiError } from '../lib/api';
 import type { Parcel } from '../lib/types';
 
@@ -13,7 +13,13 @@ interface ParcelsState {
   networkError: boolean;
 }
 
-function ParcelsPage() {
+interface ParcelsPageProps {
+  selectedParcelId: string | null;
+  onSelectParcel: (parcelId: string | null) => void;
+  onContinue?: () => void;
+}
+
+function ParcelsPage({ selectedParcelId, onSelectParcel, onContinue }: ParcelsPageProps) {
   const [state, setState] = useState<ParcelsState>({
     status: 'loading',
     parcels: [],
@@ -22,7 +28,6 @@ function ParcelsPage() {
     configError: false,
     networkError: false,
   });
-  const [selectedParcelId, setSelectedParcelId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -57,7 +62,15 @@ function ParcelsPage() {
             configError: false,
             networkError: false,
           });
+          if (selectedParcelId !== null) {
+            onSelectParcel(null);
+          }
           return;
+        }
+
+        const parcelIds = new Set(parcels.map((parcel) => parcel.parcel_id));
+        if (selectedParcelId !== null && !parcelIds.has(selectedParcelId)) {
+          onSelectParcel(null);
         }
 
         setState({
@@ -104,7 +117,7 @@ function ParcelsPage() {
       isMounted = false;
       ignore = true;
     };
-  }, []);
+  }, [onSelectParcel, selectedParcelId]);
 
   return (
     <section
@@ -149,7 +162,7 @@ function ParcelsPage() {
 
         <div className="mt-6">
           <p className="mb-6 text-[12px] font-medium tracking-[0.12em] text-[var(--red-700)]">
-            Demo fixture — not satellite-verified.
+            Demo fixture - not satellite-verified.
           </p>
 
           {state.status === 'loading' && (
@@ -244,15 +257,15 @@ function ParcelsPage() {
                         aria-pressed={isSelected}
                         aria-label={`Select ${parcel.display_name}, ${parcel.parcel_id}, ${parcel.region}, ${parcel.area_ha} hectares`}
                         onClick={() => {
-                          setSelectedParcelId((current) =>
-                            current === parcel.parcel_id ? null : parcel.parcel_id,
+                          onSelectParcel(
+                            selectedParcelId === parcel.parcel_id ? null : parcel.parcel_id,
                           );
                         }}
                         onKeyDown={(event) => {
                           if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault();
-                            setSelectedParcelId((current) =>
-                              current === parcel.parcel_id ? null : parcel.parcel_id,
+                            onSelectParcel(
+                              selectedParcelId === parcel.parcel_id ? null : parcel.parcel_id,
                             );
                           }
                         }}
@@ -286,6 +299,23 @@ function ParcelsPage() {
                   );
                 })}
               </ul>
+              {state.status === 'success' && (
+                <div className="mt-8 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onContinue && selectedParcelId !== null) {
+                        onContinue();
+                      }
+                    }}
+                    disabled={selectedParcelId === null}
+                    aria-disabled={selectedParcelId === null}
+                    className="inline-flex items-center justify-center rounded-[var(--radius-sm)] bg-[var(--navy-950)] px-5 py-2.5 text-[14px] font-medium text-[var(--white)] shadow-sm transition-colors hover:bg-[var(--navy-800)] focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[var(--red-600)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Continue
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

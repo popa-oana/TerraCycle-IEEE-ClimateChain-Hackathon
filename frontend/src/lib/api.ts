@@ -1,4 +1,10 @@
-import type { Parcel, ParcelsResponse } from './types';
+import type {
+  Parcel,
+  ParcelsResponse,
+  PlanRequest,
+  PlanResponse,
+  RotationOption,
+} from './types';
 
 const API_PREFIX = '/api/v1';
 
@@ -175,4 +181,88 @@ export async function getParcels(): Promise<ParcelsResponse> {
   }
 
   return parseParcelsResponse(body.value, response.status);
+}
+
+function isRotationCrop(value: unknown): value is { year: number; crop_id: string } {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return typeof value.year === 'number' && Number.isFinite(value.year) && typeof value.crop_id === 'string';
+}
+
+function isRotationOption(value: unknown): value is RotationOption {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    typeof value.rotation_id === 'string' &&
+    Array.isArray(value.crops) &&
+    value.crops.every(isRotationCrop) &&
+    typeof value.score === 'number' &&
+    Number.isFinite(value.score) &&
+    Array.isArray(value.explanations) &&
+    value.explanations.every((item) => typeof item === 'string') &&
+    Array.isArray(value.risks) &&
+    value.risks.every((item) => typeof item === 'string')
+  );
+}
+
+function isPlanResponse(value: unknown): value is PlanResponse {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    typeof value.plan_id === 'string' &&
+    typeof value.parcel_id === 'string' &&
+    typeof value.season_id === 'string' &&
+    Array.isArray(value.rotations) &&
+    value.rotations.every(isRotationOption) &&
+    typeof value.climate_source === 'string'
+  );
+}
+
+export async function createPlan(request: PlanRequest): Promise<PlanResponse> {
+  const url = buildApiUrl('/plans');
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+  } catch {
+    throw new ApiError(
+      'NETWORK_ERROR',
+      'Could not reach the API. Check that the backend is running and that CORS allows this origin.',
+    );
+  }
+
+  const body = await readJsonBody(response);
+
+  if (!response.ok) {
+    const { code, message } = readErrorPayload(
+      body.ok ? body.value : undefined,
+      response.status,
+    );
+    throw new ApiError(code, message, response.status);
+  }
+
+  if (!body.ok) {
+    throw new ApiError(
+      'INVALID_RESPONSE',
+      'The API returned an empty or invalid JSON response.',
+      response.status,
+    );
+  }
+
+  if (!isPlanResponse(body.value)) {
+    throw new ApiError(
+      'INVALID_RESPONSE',
+      'The API returned a plan response with an unexpected structure.',
+      response.status,
+    );
+  }
+
+  return body.value;
 }
