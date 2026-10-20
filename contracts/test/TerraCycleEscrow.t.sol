@@ -83,10 +83,10 @@ contract TerraCycleEscrowTest is Test {
         vm.prank(funder);
         escrow.fundCommitment{value: REWARD}(commitmentId);
 
-        (, , address fnd, uint256 reward, , TerraCycleEscrow.CommitmentState state) =
+        (, , address fnd, uint256 rewardAmount, , TerraCycleEscrow.CommitmentState state) =
             escrow.getCommitment(commitmentId);
         assertEq(fnd, funder);
-        assertEq(reward, REWARD);
+        assertEq(rewardAmount, REWARD);
         assertEq(uint8(state), uint8(TerraCycleEscrow.CommitmentState.Funded));
     }
 
@@ -123,8 +123,8 @@ contract TerraCycleEscrowTest is Test {
         );
 
         assertEq(beneficiary.balance, before + REWARD);
-        (bytes32 , , , uint256 reward, , TerraCycleEscrow.CommitmentState state) = escrow.getCommitment(commitmentId);
-        assertEq(reward, 0);
+        (bytes32 planHash, address beneficiary, address funder, uint256 rewardAmount, uint64 settleDeadline, CommitmentState state) = escrow.getCommitment(commitmentId);
+        assertEq(rewardAmount, 0);
         assertEq(uint8(state), uint8(TerraCycleEscrow.CommitmentState.Paid));
     }
 
@@ -145,7 +145,7 @@ contract TerraCycleEscrowTest is Test {
             signature
         );
 
-        (bytes32 , , , , , TerraCycleEscrow.CommitmentState state) = escrow.getCommitment(commitmentId);
+        (bytes32 planHash, address beneficiary, address funder, uint256 rewardAmount, uint64 settleDeadline, CommitmentState state) = escrow.getCommitment(commitmentId);
         assertEq(uint8(state), uint8(TerraCycleEscrow.CommitmentState.Negative));
     }
 
@@ -240,8 +240,8 @@ contract TerraCycleEscrowTest is Test {
         escrow.refund(commitmentId);
         assertEq(funder.balance, before + REWARD);
 
-        (bytes32 , , , uint256 reward, , TerraCycleEscrow.CommitmentState state) = escrow.getCommitment(commitmentId);
-        assertEq(reward, 0);
+        (bytes32 , , , uint256 rewardAmount, , TerraCycleEscrow.CommitmentState state) = escrow.getCommitment(commitmentId);
+        assertEq(rewardAmount, 0);
         assertEq(uint8(state), uint8(TerraCycleEscrow.CommitmentState.Refunded));
     }
 

@@ -1,0 +1,720 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TerraCycle Proof API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Config",
+        "operationId": "get_config_api_v1_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parcels": {
+      "get": {
+        "tags": [
+          "parcels"
+        ],
+        "summary": "List Parcels",
+        "operationId": "list_parcels_api_v1_parcels_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plans": {
+      "post": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Create Plan",
+        "operationId": "create_plan_api_v1_plans_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/commitments/prepare": {
+      "post": {
+        "tags": [
+          "commitments"
+        ],
+        "summary": "Prepare Commitment",
+        "operationId": "prepare_commitment_api_v1_commitments_prepare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrepareResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/commitments/{commitment_id}": {
+      "get": {
+        "tags": [
+          "commitments"
+        ],
+        "summary": "Get Commitment",
+        "operationId": "get_commitment_api_v1_commitments__commitment_id__get",
+        "parameters": [
+          {
+            "name": "commitment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Commitment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/passports/{commitment_id}": {
+      "get": {
+        "tags": [
+          "passports"
+        ],
+        "summary": "Get Passport",
+        "operationId": "get_passport_api_v1_passports__commitment_id__get",
+        "parameters": [
+          {
+            "name": "commitment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Commitment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/climate/{parcel_id}/{season_id}": {
+      "get": {
+        "tags": [
+          "climate"
+        ],
+        "summary": "Get Climate",
+        "operationId": "get_climate_api_v1_climate__parcel_id___season_id__get",
+        "parameters": [
+          {
+            "name": "parcel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Parcel Id"
+            }
+          },
+          {
+            "name": "season_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Season Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/commitments/{commitment_id}/verify": {
+      "post": {
+        "tags": [
+          "verify"
+        ],
+        "summary": "Verify Commitment",
+        "description": "Verify a funded commitment using satellite evidence.\n\nFlow:\n1. Load commitment and validate state.\n2. Load verification policy from fixture.\n3. Call scientific verifier (verify_parcel).\n4. Build canonical evidence document using evidence builder.\n5. Validate evidence document against canonical schema.\n6. Canonicalize and hash evidence (SHA-256).\n7. Build EIP-712 attestation payload.\n8. Invoke Node signer for EIP-712 signature.\n9. Persist Verdict with evidence snapshot and signature.\n10. Return verification response with attestation and signature.",
+        "operationId": "verify_commitment_api_v1_commitments__commitment_id__verify_post",
+        "parameters": [
+          {
+            "name": "commitment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Commitment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/{evidence_id}/snapshot": {
+      "get": {
+        "tags": [
+          "evidence"
+        ],
+        "summary": "Get Evidence Snapshot",
+        "operationId": "get_evidence_snapshot_api_v1_evidence__evidence_id__snapshot_get",
+        "parameters": [
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Evidence Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/commitments/{commitment_id}/transactions": {
+      "post": {
+        "tags": [
+          "transactions"
+        ],
+        "summary": "Record Transaction",
+        "operationId": "record_transaction_api_v1_commitments__commitment_id__transactions_post",
+        "parameters": [
+          {
+            "name": "commitment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Commitment Id"
+            }
+          },
+          {
+            "name": "tx_hash",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Tx Hash"
+            }
+          },
+          {
+            "name": "tx_type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Tx Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HistoryItem": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "maximum": 2026.0,
+            "minimum": 1990.0,
+            "title": "Year"
+          },
+          "crop_id": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 2,
+            "title": "Crop Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "crop_id"
+        ],
+        "title": "HistoryItem"
+      },
+      "PlanRequest": {
+        "properties": {
+          "parcel_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Parcel Id"
+          },
+          "season_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Season Id"
+          },
+          "crop_history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryItem"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Crop History"
+          },
+          "treatments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Treatments",
+            "default": []
+          },
+          "requested_crop_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 2,
+            "title": "Requested Crop Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parcel_id",
+          "season_id",
+          "crop_history",
+          "requested_crop_id"
+        ],
+        "title": "PlanRequest"
+      },
+      "PlanResponse": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "title": "Plan Id"
+          },
+          "parcel_id": {
+            "type": "string",
+            "title": "Parcel Id"
+          },
+          "season_id": {
+            "type": "string",
+            "title": "Season Id"
+          },
+          "rotations": {
+            "items": {
+              "$ref": "#/components/schemas/RotationOption"
+            },
+            "type": "array",
+            "title": "Rotations"
+          },
+          "climate_source": {
+            "type": "string",
+            "title": "Climate Source",
+            "default": "fixture"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_id",
+          "parcel_id",
+          "season_id",
+          "rotations"
+        ],
+        "title": "PlanResponse"
+      },
+      "PrepareRequest": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Plan Id"
+          },
+          "rotation_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Rotation Id"
+          },
+          "beneficiary_address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "title": "Beneficiary Address"
+          },
+          "verification_policy_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Verification Policy Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_id",
+          "rotation_id",
+          "beneficiary_address",
+          "verification_policy_id"
+        ],
+        "title": "PrepareRequest"
+      },
+      "PrepareResponse": {
+        "properties": {
+          "commitment_id": {
+            "type": "string",
+            "title": "Commitment Id"
+          },
+          "plan_hash": {
+            "type": "string",
+            "title": "Plan Hash"
+          },
+          "parcel_id": {
+            "type": "string",
+            "title": "Parcel Id"
+          },
+          "season_id": {
+            "type": "string",
+            "title": "Season Id"
+          },
+          "beneficiary_address": {
+            "type": "string",
+            "title": "Beneficiary Address"
+          },
+          "settle_deadline": {
+            "type": "string",
+            "title": "Settle Deadline"
+          },
+          "snapshot_url": {
+            "type": "string",
+            "title": "Snapshot Url"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "commitment_id",
+          "plan_hash",
+          "parcel_id",
+          "season_id",
+          "beneficiary_address",
+          "settle_deadline",
+          "snapshot_url",
+          "state"
+        ],
+        "title": "PrepareResponse"
+      },
+      "RotationCrop": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "crop_id": {
+            "type": "string",
+            "title": "Crop Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "crop_id"
+        ],
+        "title": "RotationCrop"
+      },
+      "RotationOption": {
+        "properties": {
+          "rotation_id": {
+            "type": "string",
+            "title": "Rotation Id"
+          },
+          "crops": {
+            "items": {
+              "$ref": "#/components/schemas/RotationCrop"
+            },
+            "type": "array",
+            "title": "Crops"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "explanations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Explanations"
+          },
+          "risks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Risks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rotation_id",
+          "crops",
+          "score",
+          "explanations",
+          "risks"
+        ],
+        "title": "RotationOption"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
