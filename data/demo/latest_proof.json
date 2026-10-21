@@ -1,0 +1,86 @@
+{
+  "schema_version": "demo-proof-v1",
+  "generated_at": "2026-10-21T16:19:53Z",
+  "run": {
+    "status": "success",
+    "local_only": true,
+    "network": "anvil-local",
+    "chain_id": 31337,
+    "rpc_url": "http://127.0.0.1:8545"
+  },
+  "parcel": {
+    "parcel_id": "parcel_01",
+    "season_id": "season-2024",
+    "satellite_provider": "Copernicus Data Space",
+    "satellite_dataset": "Sentinel-2 L2A",
+    "satellite_method": "cloud-masked NDVI (SCL classes 4,5)",
+    "source_csv": "parcel_01_2024_quality.csv",
+    "observations_total": 35,
+    "observations_valid": 29,
+    "source_rows": 48
+  },
+  "verification": {
+    "policy_version": "cover-v1",
+    "policy_type": "vegetation_cover",
+    "window_start": "2024-03-01",
+    "window_end": "2024-11-01",
+    "ndvi_threshold": 0.35,
+    "required_fraction": 0.8,
+    "min_observations": 5,
+    "verdict": "nonconform",
+    "verdict_code": 1,
+    "reason_code": "RULE_BASED_DECISION",
+    "reason": "10/29 observations above NDVI threshold 0.35 (fraction=0.34, required=0.8)",
+    "evidence_quality": "assessed",
+    "temporal_coverage": 0.76,
+    "evidence_quality_warnings": []
+  },
+  "evidence": {
+    "schema_version": "evidence-v1",
+    "evidence_id": "evidence-parcel_01-season-2024",
+    "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+    "plan_id": "plan-19f045ac9a6d",
+    "plan_hash": "0x161e3ed13e04d4916811a5842feb5a01e25ae4ee17439c3bc6b740f7064e5194",
+    "evidence_hash": "0x281cf44e592ed2e57dd40f16f70c63f96a281ec8fd249b85ce1a96a5cab0dd75",
+    "evidence_hash_recomputed": "0x281cf44e592ed2e57dd40f16f70c63f96a281ec8fd249b85ce1a96a5cab0dd75",
+    "canonical_bytes_length": 5685
+  },
+  "blockchain": {
+    "network": "anvil-local",
+    "chain_id": 31337,
+    "registry_address": "0x5eb3Bc0a489C5A8288765d2336659EbCA68FCd00",
+    "deploy_tx_hash": "0x57bd1b22540df0095289e7e25fe8ebae9d788a1b1041c0c68daab6eeb18cf004",
+    "tx_hash": "0x78187395d4c1e9bafda1df8d571318109b83e15839a9bee408d75e62ec4d86a7",
+    "receipt_status": 1,
+    "event": {
+      "name": "EvidenceRecorded",
+      "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+      "evidence_hash": "0x281cf44e592ed2e57dd40f16f70c63f96a281ec8fd249b85ce1a96a5cab0dd75",
+      "verdict_code": 1,
+      "recorder": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "recorded_at": 1792599593
+    },
+    "on_chain": {
+      "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",
+      "evidence_hash": "0x281cf44e592ed2e57dd40f16f70c63f96a281ec8fd249b85ce1a96a5cab0dd75",
+      "verdict_code": 1,
+      "read_back_match": true
+    }
+  },
+  "integrity": {
+    "evidence_hash_recomputed_matches": true,
+    "transaction_receipt_successful": true,
+    "event_matches_evidence": true,
+    "on_chain_matches_generated": true,
+    "verdict_preserved": true
+  },
+  "limitations": [
+    "Scientific verification only: the verdict describes vegetation cover derived from Sentinel-2 NDVI over the frozen policy window. It is not an agronomic certification.",
+    "NOT an organic certification: nothing in this pipeline checks chemical use, soil condition, seed origin or any other input compliance.",
+    "Cryptographic integrity only: the evidence hash is SHA-256 over the canonical evidence bytes. It shows the record was not altered; it proves nothing about the truth of the observations.",
+    "Recording on a LOCAL Anvil blockchain: the transaction exists only in a throwaway local chain. It is not a public testnet transaction.",
+    "NOT settlement authorization: no EIP-712 attestation was produced or checked, and no payment is triggered or authorized.",
+    "The registry stores evidence metadata only: it does not independently verify satellite observations, compliance or payment eligibility.",
+    "Retrospective demonstration over 2024 observations, not a forward-looking guarantee."
+  ]
+}

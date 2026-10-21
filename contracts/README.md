@@ -248,6 +248,45 @@ Local configuration: `ANVIL_RPC_URL` (default `http://127.0.0.1:8545`), `ANVIL_P
 | `Registry`, `Deploy tx` | local deployment address and transaction |
 | `Evidence tx` | the mined transaction hash and its receipt status |
 
+### Presentation summary (`data/demo/latest_proof.json`)
+
+A successful run can publish a machine-readable summary for a future read-only interface:
+
+```bash
+cd contracts
+python smoke_test_real_evidence.py --output ../data/demo/latest_proof.json
+```
+
+The document is written **only after every integrity check passed**, and it is written
+**atomically** (a partial file is never left behind). The checks are:
+
+1. the SHA-256 is recomputed from the canonical evidence bytes and compared with the hash used
+   in the transaction;
+2. the transaction receipt is successful;
+3. the emitted `EvidenceRecorded` event carries the expected commitment id, evidence hash and
+   verdict;
+4. the values stored on chain equal the generated evidence;
+5. the scientific verdict was not modified.
+
+If any check fails the run exits non-zero and **the previous document is removed**, so a failed
+run can never leave a success document that a reader could mistake for a current result.
+
+The summary is a **presentation summary only**: the canonical evidence bytes and their SHA-256
+hash remain the authoritative artefacts. It is deliberately flat and small:
+
+| Section | Content |
+|---|---|
+| `run` | status, local-chain identification, chain id, RPC endpoint |
+| `parcel` | parcel/season, satellite source, observation counts |
+| `verification` | the scientific verdict, policy, window, quality warnings |
+| `evidence` | commitment id, evidence id, evidence hash, canonical size |
+| `blockchain` | registry address, transaction hashes, receipt status, event, on-chain values |
+| `integrity` | the five verification flags above |
+| `limitations` | what the result does **not** claim |
+
+No private key, token or credential is ever written: the RPC endpoint is reduced to a
+credential-free local URL and any non-local host is redacted.
+
 ### What the blockchain actually proves
 
 The registry proves **who** recorded a given evidence hash for a given commitment, **when**, and
@@ -257,6 +296,14 @@ same bytes the backend computed and signed off-chain.
 It does **not** prove that the satellite observations are correct, that the practice is
 environmentally compliant, that the farmer is organic-certified, or that anyone is entitled to a
 payment. Those remain offline, scientific and policy questions.
+
+The three layers stay explicitly separate, in the summary and in this pipeline:
+
+| Layer | What it establishes |
+|---|---|
+| `verification` | **scientific** — vegetation conditions from Sentinel-2 NDVI over the frozen policy window |
+| `evidence` | **cryptographic** — SHA-256 over the canonical evidence bytes; the record is unaltered |
+| `blockchain` | **recording** — who stored that hash, on a LOCAL chain, and when |
 
 > **Local Anvil transactions are not public testnet transactions.** They exist only in the
 > throwaway local chain and disappear with it. No real ETH is used and no public network is

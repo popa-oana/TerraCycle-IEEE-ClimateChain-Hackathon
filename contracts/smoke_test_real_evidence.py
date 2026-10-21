@@ -29,14 +29,26 @@ Usage:
     export ANVIL_RPC_URL=http://127.0.0.1:8545
     export ANVIL_PRIVATE_KEY=<a development key printed by Anvil>
     python smoke_test_real_evidence.py            # terminal 2
+
+The successful run can publish a presentation summary (a plain JSON document)
+for a future read-only interface:
+
+    python smoke_test_real_evidence.py --output data/demo/latest_proof.json
+
+The summary is written ONLY after every integrity check passed, and it is
+written atomically. It is a presentation summary: the canonical evidence bytes
+and their SHA-256 hash remain the authoritative artefacts.
 """
 
+import argparse
 import hashlib
 import json
 import os
 import sys
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 CONTRACTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = CONTRACTS_DIR.parent
@@ -82,6 +94,29 @@ CROP_HISTORY = [
     HistoryItem(year=2023, crop_id="sunflower"),
 ]
 REQUESTED_CROP_ID = "maize"
+
+# Presentation summary of a successful demonstration (NOT a canonical artefact).
+DEMO_SCHEMA_VERSION = "demo-proof-v1"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "data" / "demo" / "latest_proof.json"
+
+DEMO_LIMITATIONS = [
+    "Scientific verification only: the verdict describes vegetation cover derived "
+    "from Sentinel-2 NDVI over the frozen policy window. It is not an agronomic "
+    "certification.",
+    "NOT an organic certification: nothing in this pipeline checks chemical use, "
+    "soil condition, seed origin or any other input compliance.",
+    "Cryptographic integrity only: the evidence hash is SHA-256 over the canonical "
+    "evidence bytes. It shows the record was not altered; it proves nothing about "
+    "the truth of the observations.",
+    "Recording on a LOCAL Anvil blockchain: the transaction exists only in a "
+    "throwaway local chain. It is not a public testnet transaction.",
+    "NOT settlement authorization: no EIP-712 attestation was produced or checked, "
+    "and no payment is triggered or authorized.",
+    "The registry stores evidence metadata only: it does not independently verify "
+    "satellite observations, compliance or payment eligibility.",
+    "Retrospective demonstration over 2024 observations, not a forward-looking "
+    "guarantee.",
+]
 
 
 def make_session_factory():
@@ -194,7 +229,226 @@ def generate_real_evidence(session_factory=None) -> dict:
     }
 
 
+def safe_rpc_url(url: str) -> str:
+    """A credential-free description of the RPC endpoint (never a token)."""
+    parsed = urlsplit(url)
+    host = parsed.hostname or ""
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        return f"{parsed.scheme}://<non-local endpoint redacted>"
+    port = f":{parsed.port}" if parsed.port else ""
+    return f"{parsed.scheme}://{host}{port}"
+
+
+def build_demo_document(
+    evidence: dict,
+    chain_id: int,
+    rpc_url: str,
+    registry,
+    registry_address: str,
+    deploy_tx_hash: str,
+    receipt: dict,
+    tx_hash: str,
+) -> dict:
+    """
+    Build the presentation summary of a successful demonstration.
+
+    Every value comes from the real execution: the verifier result, the canonical
+    evidence bytes, the mined receipt and the contract storage. Nothing is
+    invented and no secret is included.
+    """
+    from smoke_test import to_hex
+
+    verifier_result = evidence["verifier_result"]
+    quality = verifier_result["quality"]
+    policy = evidence["policy"]
+    commitment = evidence["commitment"]
+    evidence_doc = evidence["evidence_doc"]
+
+    log = receipt["logs"][0]
+    event_recorder, event_recorded_at = decode_event_data(log)
+
+    stored = registry.functions.getEvidence(evidence["commitment_id"]).call()
+    stored_commitment_id, stored_evidence_hash, stored_verdict = stored[0], stored[1], stored[2]
+
+    recomputed_hash = "0x" + hashlib.sha256(evidence["evidence_bytes"]).hexdigest()
+    read_back_match = (
+        to_hex(stored_commitment_id) == to_hex(evidence["commitment_id"])
+        and to_hex(stored_evidence_hash) == to_hex(evidence["evidence_hash"])
+        and stored_verdict == evidence["verdict_code"]
+    )
+
+    return {
+        "schema_version": DEMO_SCHEMA_VERSION,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "run": {
+            "status": "success",
+            "local_only": True,
+            "network": "anvil-local",
+            "chain_id": chain_id,
+            "rpc_url": safe_rpc_url(rpc_url),
+        },
+        "parcel": {
+            "parcel_id": commitment.parcel_id,
+            "season_id": commitment.season_id,
+            "satellite_provider": verifier_result["source"]["provider"],
+            "satellite_dataset": verifier_result["source"]["dataset"],
+            "satellite_method": verifier_result["source"]["method"],
+            "source_csv": Path(verifier_result["source"]["csv_file"]).name,
+            "observations_total": len(verifier_result["observations"]),
+            "observations_valid": quality["valid_count"],
+            "source_rows": quality["total_rows"],
+        },
+        "verification": {
+            "policy_version": policy["policy_version"],
+            "policy_type": policy["type"],
+            "window_start": policy["window_start"],
+            "window_end": policy["window_end"],
+            "ndvi_threshold": policy["ndvi_threshold"],
+            "required_fraction": policy["required_fraction"],
+            "min_observations": policy["min_observations"],
+            "verdict": evidence["verdict"],
+            "verdict_code": evidence["verdict_code"],
+            "reason_code": verifier_result["reason_code"],
+            "reason": verifier_result["reason"],
+            "evidence_quality": quality["evidence_quality"],
+            "temporal_coverage": quality["temporal_coverage"],
+            "evidence_quality_warnings": list(quality["warnings"]),
+        },
+        "evidence": {
+            "schema_version": evidence_doc["schema_version"],
+            "evidence_id": f"evidence-{commitment.parcel_id}-{commitment.season_id}",
+            "commitment_id": evidence["commitment_id"],
+            "plan_id": evidence["plan_id"],
+            "plan_hash": evidence["plan_hash"],
+            "evidence_hash": evidence["evidence_hash"],
+            "evidence_hash_recomputed": recomputed_hash,
+            "canonical_bytes_length": len(evidence["evidence_bytes"]),
+        },
+        "blockchain": {
+            "network": "anvil-local",
+            "chain_id": chain_id,
+            "registry_address": registry_address,
+            "deploy_tx_hash": deploy_tx_hash,
+            "tx_hash": tx_hash,
+            "receipt_status": receipt["status"],
+            "event": {
+                "name": "EvidenceRecorded",
+                "commitment_id": to_hex(log["topics"][1]),
+                "evidence_hash": to_hex(log["topics"][2]),
+                "verdict_code": int(to_hex(log["topics"][3]), 16),
+                "recorder": event_recorder,
+                "recorded_at": event_recorded_at,
+            },
+            "on_chain": {
+                "commitment_id": to_hex(stored_commitment_id),
+                "evidence_hash": to_hex(stored_evidence_hash),
+                "verdict_code": stored_verdict,
+                "read_back_match": read_back_match,
+            },
+        },
+        "integrity": {
+            "evidence_hash_recomputed_matches": recomputed_hash == evidence["evidence_hash"],
+            "transaction_receipt_successful": receipt["status"] == 1,
+            "event_matches_evidence": (
+                to_hex(log["topics"][1]) == to_hex(evidence["commitment_id"])
+                and to_hex(log["topics"][2]) == to_hex(evidence["evidence_hash"])
+                and int(to_hex(log["topics"][3]), 16) == evidence["verdict_code"]
+            ),
+            "on_chain_matches_generated": read_back_match,
+            "verdict_preserved": (
+                evidence["verdict_code"] == verifier_result["verdict_code"]
+                == evidence_doc["verdict_code"]
+            ),
+        },
+        "limitations": list(DEMO_LIMITATIONS),
+    }
+
+
+def decode_event_data(log: dict) -> tuple[str, int]:
+    """Decode the non-indexed event fields (recorder, recordedAt)."""
+    from eth_abi import decode as abi_decode
+
+    recorder, recorded_at = abi_decode(["address", "uint256"], bytes(log["data"]))
+    return Web3.to_checksum_address(recorder), int(recorded_at)
+
+
+def write_demo_document(path: Path, document: dict) -> Path:
+    """Write the summary atomically: a partial file is never left behind."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(document, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
+
+    handle = tempfile.NamedTemporaryFile(
+        "w",
+        encoding="utf-8",
+        newline="\n",  # the repository stores text files with LF endings
+        dir=str(path.parent),
+        prefix=path.name + ".",
+        suffix=".tmp",
+        delete=False,
+    )
+    try:
+        with handle as fh:
+            fh.write(payload)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(handle.name, path)
+    except Exception:
+        try:
+            os.unlink(handle.name)
+        except OSError:
+            pass
+        raise
+    return path
+
+
+def remove_stale_output(path: Path) -> None:
+    """A failed run must never leave a document that could be read as current."""
+    path = Path(path)
+    if not path.exists():
+        return
+    stat = path.stat()
+    print(
+        f"[WARN] removing the stale proof document {path} "
+        f"(written {datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat()}): "
+        "a failed run must not leave a success document behind",
+        file=sys.stderr,
+    )
+    path.unlink()
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="Real satellite evidence on a local chain.")
+    parser.add_argument(
+        "--output",
+        default=str(DEFAULT_OUTPUT_PATH),
+        help="where to write the presentation summary (default: data/demo/latest_proof.json)",
+    )
+    parser.add_argument(
+        "--no-export",
+        action="store_true",
+        help="run the demonstration without writing the presentation summary",
+    )
+    return parser.parse_args(argv)
+
+
+def resolve_output_path(args) -> Path:
+    path = Path(args.output)
+    return path if path.is_absolute() else (Path.cwd() / path)
+
+
 def main() -> int:
+    args = parse_args()
+    output_path = resolve_output_path(args)
+    try:
+        return run_demo(output_path, export=not args.no_export)
+    except BaseException:
+        # A failed run must never leave a success document behind.
+        remove_stale_output(output_path)
+        raise
+
+
+def run_demo(output_path: Path, export: bool = True) -> int:
     rpc_url = os.environ.get("ANVIL_RPC_URL", "http://127.0.0.1:8545")
     private_key = os.environ.get("ANVIL_PRIVATE_KEY")
     if not private_key:
@@ -301,6 +555,27 @@ def main() -> int:
     print(f"Registry       : {registry_address}")
     print(f"Evidence tx    : {tx_hash} (status {receipt['status']})")
     print("note: local Anvil only — not a public testnet transaction, and not settlement")
+
+    if not export:
+        print("\nno presentation summary was written (--no-export)")
+        return 0
+
+    # Every integrity check passed: build and publish the summary.
+    document = build_demo_document(
+        evidence=evidence,
+        chain_id=w3.eth.chain_id,
+        rpc_url=rpc_url,
+        registry=registry,
+        registry_address=registry_address,
+        deploy_tx_hash=deploy_hash,
+        receipt=receipt,
+        tx_hash=tx_hash,
+    )
+    for name, ok in document["integrity"].items():
+        check(bool(ok), f"integrity check passed: {name}")
+
+    written = write_demo_document(output_path, document)
+    print(f"\nPresentation summary written to {written}")
     return 0
 
 

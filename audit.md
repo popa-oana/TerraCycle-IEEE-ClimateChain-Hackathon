@@ -31,3 +31,14 @@
 - Read-back: MATCH
 - Remaining: None
 - Next: TASK-003, pending authorization
+
+### TASK-003A — Demo Data Export
+- Status: COMPLETE
+- Changed: `contracts/smoke_test_real_evidence.py`, `contracts/README.md`, `tests/test_demo_export.py` (new), `data/demo/latest_proof.json` (generated), `audit.md`
+- Done: The real-evidence demonstration now publishes an atomic, integrity-checked JSON summary (satellite result, canonical evidence, local-chain record, limitations) after every check passes; a failed run removes any stale document.
+- Tests: new focused tests 15 passed; full Python 565 passed, 0 failed; `forge test -vv` 15 passed; real demo exit 0; failure path verified (exit 1, stale document removed).
+- Output: `data/demo/latest_proof.json`
+- Blockchain: local Anvil chain id 31337, tx `0x78187395d4c1e9bafda1df8d571318109b83e15839a9bee408d75e62ec4d86a7`, receipt status 1
+- Integrity: MATCH
+- Remaining: None
+- Next: TASK-003B — Minimal Read-Only Demo Interface
