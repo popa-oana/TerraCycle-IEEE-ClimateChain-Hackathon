@@ -117,6 +117,76 @@ forge test -vv
 The tests run entirely on the local EVM: no RPC endpoint, no fork, no network access and no ETH
 is moved.
 
+## Local blockchain demo (Anvil)
+
+The registry can be deployed to a **local** Anvil chain and exercised with one real transaction.
+
+> This runs **only on a local blockchain**. No real ETH is used, no public network is contacted
+> and no real wallet credentials are involved. The commitment id and evidence hash recorded by
+> the demo are **TEST values** for this task — they are not satellite-derived evidence and they do
+> not describe any agricultural parcel. This registry is **not** the full escrow contract:
+> there is no funding, no settlement, no refund and no EIP-712 signing.
+
+### 1. Start a local chain
+
+The project documents `CHAIN_RPC_URL=http://127.0.0.1:8545` and `CHAIN_ID=31337`
+(`Role_Corina.md`). Anvil prints its development accounts and keys on startup — copy one of them
+into the `ANVIL_PRIVATE_KEY` environment variable. **Never commit a key or a `.env` file.**
+
+```bash
+cd contracts
+anvil --host 127.0.0.1 --port 8545 --chain-id 31337
+```
+
+### 2. Run the smoke test
+
+In a second terminal:
+
+```bash
+cd contracts
+forge build                       # the deployment bytecode comes from the Foundry artifact
+export ANVIL_RPC_URL=http://127.0.0.1:8545
+export ANVIL_PRIVATE_KEY=<one of the development keys Anvil printed>
+python smoke_test.py
+```
+
+`smoke_test.py` (Web3, already a backend dependency) deploys the registry, records one evidence
+entry with deterministic TEST values, then verifies:
+
+- the chain is reachable and runs on the documented local chain id `31337`;
+- the deployment transaction succeeded;
+- the authorized verifier on chain is the one given to the constructor;
+- the evidence transaction receipt has status `1` and targets the registry;
+- exactly one `EvidenceRecorded` event was emitted, with the expected commitment id, evidence
+  hash, verdict, recorder and timestamp;
+- `getEvidence()` returns exactly the submitted values, and `hasEvidence()` is `true`.
+
+It prints the registry address and the transaction hash, and **exits non-zero** if any check
+fails. Set `REGISTRY_ADDRESS` to reuse an already deployed registry instead of deploying a new
+one; set `REGISTRY_VERIFIER` to use a verifier address other than the deployer.
+
+### 3. Manual equivalent with Foundry tools
+
+```bash
+# Deploy (note: --constructor-args is variadic, so it must come last)
+forge create src/TerraCycleEvidenceRegistry.sol:TerraCycleEvidenceRegistry \
+  --rpc-url http://127.0.0.1:8545 --private-key $ANVIL_PRIVATE_KEY --broadcast \
+  --constructor-args 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+
+# Record one evidence entry (TEST values, verdict 0 = conform)
+cast send <REGISTRY> "recordEvidence(bytes32,bytes32,uint8)" \
+  0x7465737400000000000000000000000000000000000000000000000000000001 \
+  0x7465737400000000000000000000000000000000000000000000000000000002 0 \
+  --rpc-url http://127.0.0.1:8545 --private-key $ANVIL_PRIVATE_KEY
+
+# Read it back
+cast call <REGISTRY> "getEvidence(bytes32)((bytes32,bytes32,uint8,uint256,address))" \
+  0x7465737400000000000000000000000000000000000000000000000000000001 \
+  --rpc-url http://127.0.0.1:8545
+```
+
+Recording the same commitment id twice reverts with `EvidenceAlreadyRecorded`.
+
 ### Foundry on Windows
 
 Foundry was not installed on this machine, so it was installed **locally** (no global toolchain
