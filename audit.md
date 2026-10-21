@@ -235,3 +235,16 @@ proof page.
 
 Restore `frontend/` from `origin/main` and add the single step-05 proof page, keeping
 `demo/index.html` as the proven fallback for the Oct 25 presentation.
+
+### TASK-003D.1 — Frontend Recovery
+- Status: COMPLETE
+- Source: origin/main:frontend/
+- Changed: `frontend/` — 27 files, byte-identical to origin/main
+- Done: Restored the React/Vite/TS/Tailwind frontend via `git restore --source=origin/main --worktree -- frontend/`; no merge, no branch switch.
+- Build: PASS (npm ci + vite build; needed optional `@rolldown/binding-win32-x64-msvc` — Node 22.11 < Vite 22.12; manifests unchanged)
+- TypeScript: PASS
+- ESLint: PASS
+- Browser: PASS (headless Chrome: shell, six-step rail, parcel page)
+- Existing demo: PRESERVED (checksums unchanged; pytest 581 passed)
+- Remaining: parcel selection errors (INVALID_RESPONSE) — parcel payload lacks `latitude`/`longitude`
+- Next: TASK-003D.2 — React Proof Page
