@@ -53,3 +53,11 @@
 - Limitations: browser checked via headless Chrome DOM dump only; no screenshot/visual regression; the page shows a snapshot, not live chain state.
 - Remaining: None
 - Next: TASK-003C — Demo Reproducibility and Walkthrough
+
+### Frontend Recovery Assessment
+- Status: FOUND
+- Location: `origin/main` (also `origin/feat/oana-parcel-integration`), path `frontend/` — React 19 + Vite 8 + TS + Tailwind 4, 13 commits
+- Build: PASS in an isolated checkout (npm ci, tsc, eslint, vite build OK; needs `@rolldown/binding-win32-x64-msvc` because Node 22.11 < Vite's 22.12)
+- Existing functionality: AppShell, 6-step rail, working ParcelsPage with a typed API client; HistoryPage is a placeholder; steps 03-06 (rotation, commitment, verification, passport) do not exist
+- Recommendation: hybrid — keep the proven read-only demo for Oct 25, recover Oana's frontend afterwards
+- Next: restore `frontend/` from origin/main (with its newer `demo.json`), add one step-05 proof page reading `data/demo/latest_proof.json`
