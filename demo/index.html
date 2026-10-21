@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TerraCycle Proof — Satellite-backed environmental evidence verification</title>
+  <meta name="description" content="Read-only demonstration of a verified satellite evidence record recorded on a local blockchain." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap hero-inner">
+      <p class="eyebrow">TerraCycle Proof</p>
+      <h1 class="hero-title">TerraCycle Proof</h1>
+      <p class="hero-subtitle">Satellite-backed environmental evidence verification</p>
+      <p class="badge badge-local">Local Blockchain Demonstration</p>
+      <p class="hero-meta" id="run-meta">Loading the verified demonstration snapshot…</p>
+    </div>
+  </header>
+
+  <main class="wrap" id="content" hidden>
+
+    <!-- 01 -->
+    <section class="card" aria-labelledby="h-parcel">
+      <div class="card-head">
+        <span class="step">01</span>
+        <h2 id="h-parcel">Parcel &amp; satellite evidence</h2>
+      </div>
+      <dl class="grid">
+        <div class="row"><dt>Parcel</dt><dd id="p-parcel-id">–</dd></div>
+        <div class="row"><dt>Season</dt><dd id="p-season-id">–</dd></div>
+        <div class="row"><dt>Satellite source</dt><dd id="p-provider">–</dd></div>
+        <div class="row"><dt>Dataset</dt><dd id="p-dataset">–</dd></div>
+        <div class="row"><dt>Method</dt><dd id="p-method">–</dd></div>
+        <div class="row"><dt>Source file</dt><dd id="p-source-csv">–</dd></div>
+        <div class="row"><dt>Observations</dt><dd id="p-observations">–</dd></div>
+        <div class="row"><dt>Source rows</dt><dd id="p-rows">–</dd></div>
+      </dl>
+    </section>
+
+    <!-- 02 -->
+    <section class="card" aria-labelledby="h-verification">
+      <div class="card-head">
+        <span class="step">02</span>
+        <h2 id="h-verification">Scientific verification</h2>
+      </div>
+      <div class="verdict-row">
+        <span class="verdict" id="v-verdict">–</span>
+        <span class="verdict-code" id="v-verdict-code">–</span>
+      </div>
+      <p class="verdict-reason" id="v-reason">–</p>
+      <dl class="grid">
+        <div class="row"><dt>Reason code</dt><dd id="v-reason-code">–</dd></div>
+        <div class="row"><dt>Policy</dt><dd id="v-policy">–</dd></div>
+        <div class="row"><dt>Verification window</dt><dd id="v-window">–</dd></div>
+        <div class="row"><dt>NDVI threshold</dt><dd id="v-threshold">–</dd></div>
+        <div class="row"><dt>Required fraction</dt><dd id="v-fraction">–</dd></div>
+        <div class="row"><dt>Evidence quality</dt><dd id="v-quality">–</dd></div>
+        <div class="row"><dt>Temporal coverage</dt><dd id="v-coverage">–</dd></div>
+      </dl>
+      <ul class="notes" id="v-warnings"></ul>
+    </section>
+
+    <!-- 03 -->
+    <section class="card" aria-labelledby="h-evidence">
+      <div class="card-head">
+        <span class="step">03</span>
+        <h2 id="h-evidence">Canonical evidence</h2>
+      </div>
+      <dl class="grid">
+        <div class="row"><dt>Commitment id</dt><dd><code class="hash" id="e-commitment-id">–</code><button class="copy" data-copy-target="e-commitment-id" type="button" aria-label="Copy commitment id">Copy</button></dd></div>
+        <div class="row"><dt>Evidence id</dt><dd><code id="e-evidence-id">–</code></dd></div>
+        <div class="row"><dt>Evidence hash</dt><dd><code class="hash" id="e-evidence-hash">–</code><button class="copy" data-copy-target="e-evidence-hash" type="button" aria-label="Copy evidence hash">Copy</button></dd></div>
+        <div class="row"><dt>Hash recomputed from canonical bytes</dt><dd><code class="hash" id="e-evidence-hash-recomputed">–</code></dd></div>
+        <div class="row"><dt>Canonical size</dt><dd id="e-bytes">–</dd></div>
+        <div class="row"><dt>Evidence schema</dt><dd id="e-schema">–</dd></div>
+        <div class="row"><dt>Plan id</dt><dd id="e-plan-id">–</dd></div>
+        <div class="row"><dt>Plan hash</dt><dd><code class="hash" id="e-plan-hash">–</code></dd></div>
+      </dl>
+    </section>
+
+    <!-- 04 -->
+    <section class="card" aria-labelledby="h-chain">
+      <div class="card-head">
+        <span class="step">04</span>
+        <h2 id="h-chain">Blockchain proof</h2>
+        <span class="badge badge-local badge-inline">Local Anvil — not a public testnet</span>
+      </div>
+      <dl class="grid">
+        <div class="row"><dt>Network</dt><dd id="c-network">–</dd></div>
+        <div class="row"><dt>Chain id</dt><dd id="c-chain-id">–</dd></div>
+        <div class="row"><dt>Registry contract</dt><dd><code class="hash" id="c-registry">–</code><button class="copy" data-copy-target="c-registry" type="button" aria-label="Copy registry address">Copy</button></dd></div>
+        <div class="row"><dt>Evidence transaction</dt><dd><code class="hash" id="c-tx-hash">–</code><button class="copy" data-copy-target="c-tx-hash" type="button" aria-label="Copy transaction hash">Copy</button></dd></div>
+        <div class="row"><dt>Deployment transaction</dt><dd><code class="hash" id="c-deploy-tx">–</code></dd></div>
+        <div class="row"><dt>Receipt status</dt><dd id="c-status">–</dd></div>
+        <div class="row"><dt>Event</dt><dd id="c-event">–</dd></div>
+        <div class="row"><dt>Recorded by</dt><dd id="c-recorder">–</dd></div>
+        <div class="row"><dt>On-chain read-back</dt><dd id="c-readback">–</dd></div>
+      </dl>
+      <p class="note" id="chain-note">
+        This snapshot was verified when the demonstration ran. The page does not query a running
+        chain, so it cannot show the current state of the local network.
+      </p>
+    </section>
+
+    <!-- 05 -->
+    <section class="card" aria-labelledby="h-limitations">
+      <div class="card-head">
+        <span class="step">05</span>
+        <h2 id="h-limitations">Limitations</h2>
+      </div>
+      <p class="note note-lead">
+        NDVI indicates vegetation conditions, not organic certification. The blockchain proves
+        that the submitted evidence hash was recorded by an authorized party, not that the
+        underlying environmental claim is necessarily true. This demonstration runs on a local
+        Anvil chain, not a public testnet, and no automatic escrow settlement or payment is
+        demonstrated.
+      </p>
+      <ul class="notes notes-limitations" id="limitations"></ul>
+    </section>
+
+    <section class="card card-integrity" aria-labelledby="h-integrity">
+      <div class="card-head">
+        <span class="step">06</span>
+        <h2 id="h-integrity">Integrity checks at generation time</h2>
+      </div>
+      <ul class="notes notes-integrity" id="integrity"></ul>
+    </section>
+  </main>
+
+  <div class="wrap" id="error-panel" hidden>
+    <section class="card card-error">
+      <div class="card-head">
+        <span class="step">!</span>
+        <h2>The demonstration data could not be loaded</h2>
+      </div>
+      <p class="verdict-reason" id="error-message">–</p>
+      <p class="note">
+        No placeholder values are shown. Generate the document with the real-evidence
+        demonstration and reload this page.
+      </p>
+    </section>
+  </div>
+
+  <footer class="wrap site-footer">
+    <p>
+      TerraCycle Proof — read-only demonstration page. It performs no blockchain transaction and
+      contacts no external service.
+    </p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

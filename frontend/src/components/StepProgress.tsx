@@ -2,6 +2,14 @@ export type StepIndex = 1 | 2 | 3 | 4 | 5 | 6;
 
 interface StepProgressProps {
   currentStep: StepIndex;
+  /**
+   * Steps that were genuinely completed. A step that was only visited is not
+   * completed, so the rail never claims progress that did not happen.
+   */
+  completedSteps?: StepIndex[];
+  /** Steps that can be opened directly. */
+  availableSteps?: StepIndex[];
+  onSelectStep?: (step: StepIndex) => void;
 }
 
 interface WorkflowStep {
@@ -22,7 +30,12 @@ function padStep(step: number): string {
   return step.toString().padStart(2, '0');
 }
 
-export function StepProgress({ currentStep }: StepProgressProps) {
+export function StepProgress({
+  currentStep,
+  completedSteps = [],
+  availableSteps = [],
+  onSelectStep,
+}: StepProgressProps) {
   const activeLabel = WORKFLOW_STEPS[currentStep - 1].label;
 
   return (
@@ -31,42 +44,58 @@ export function StepProgress({ currentStep }: StepProgressProps) {
       <ol className="hidden w-[var(--rail)] shrink-0 md:block">
         {WORKFLOW_STEPS.map((step) => {
           const isCurrent = step.index === currentStep;
-          const isCompleted = step.index < currentStep;
+          const isCompleted = completedSteps.includes(step.index);
+          const isAvailable = availableSteps.includes(step.index) && onSelectStep !== undefined;
+          const borderStyle = {
+            borderColor: isCurrent ? 'var(--red-700)' : 'var(--line)',
+            borderLeftWidth: isCurrent ? '3px' : '1px',
+          };
+
+          const content = (
+            <>
+              <span
+                className={`font-mono text-[13px] tracking-[0.08em] ${
+                  isCurrent ? 'text-[var(--red-700)]' : 'text-[var(--muted)]'
+                }`}
+              >
+                {padStep(step.index)}
+              </span>
+              <span
+                className={`text-[14px] leading-[1.4] ${
+                  isCurrent
+                    ? 'font-semibold text-[var(--navy-950)]'
+                    : isCompleted
+                      ? 'text-[var(--muted)]'
+                      : 'text-[var(--muted)]'
+                }`}
+              >
+                {step.label}
+              </span>
+              {isCompleted && (
+                <span className="ml-auto text-[12px] text-[var(--muted)]" aria-hidden="true">
+                  &#10003;
+                </span>
+              )}
+            </>
+          );
 
           return (
             <li key={step.index} className="relative">
-              <div
-                className="flex items-baseline gap-3 border-l py-3 pl-4"
-                style={{
-                  borderColor: isCurrent ? 'var(--red-700)' : 'var(--line)',
-                  borderLeftWidth: isCurrent ? '3px' : '1px',
-                }}
-                aria-current={isCurrent ? 'step' : undefined}
-              >
-                <span
-                  className={`font-mono text-[13px] tracking-[0.08em] ${
-                    isCurrent ? 'text-[var(--red-700)]' : 'text-[var(--muted)]'
-                  }`}
+              {isAvailable ? (
+                <button
+                  type="button"
+                  onClick={() => onSelectStep(step.index)}
+                  aria-current={isCurrent ? 'step' : undefined}
+                  className="flex w-full items-baseline gap-3 border-l py-3 pl-4 text-left transition-colors hover:bg-[var(--white)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--red-600)]"
+                  style={borderStyle}
                 >
-                  {padStep(step.index)}
-                </span>
-                <span
-                  className={`text-[14px] leading-[1.4] ${
-                    isCurrent
-                      ? 'font-semibold text-[var(--navy-950)]'
-                      : isCompleted
-                        ? 'text-[var(--muted)]'
-                        : 'text-[var(--muted)]'
-                  }`}
-                >
-                  {step.label}
-                </span>
-                {isCompleted && (
-                  <span className="ml-auto text-[12px] text-[var(--muted)]" aria-hidden="true">
-                    &#10003;
-                  </span>
-                )}
-              </div>
+                  {content}
+                </button>
+              ) : (
+                <div className="flex items-baseline gap-3 border-l py-3 pl-4" style={borderStyle}>
+                  {content}
+                </div>
+              )}
             </li>
           );
         })}
@@ -89,18 +118,31 @@ export function StepProgress({ currentStep }: StepProgressProps) {
         >
           {WORKFLOW_STEPS.map((step) => {
             const isCurrent = step.index === currentStep;
-            const isCompleted = step.index < currentStep;
+            const isCompleted = completedSteps.includes(step.index);
+            const isAvailable = availableSteps.includes(step.index) && onSelectStep !== undefined;
 
-            return (
+            const segmentClass = `h-1.5 min-w-0 flex-1 ${
+              isCurrent
+                ? 'bg-[var(--red-700)]'
+                : isCompleted
+                  ? 'bg-[var(--navy-800)]'
+                  : 'bg-[var(--line)]'
+            }`;
+
+            return isAvailable ? (
+              <button
+                key={step.index}
+                type="button"
+                onClick={() => onSelectStep(step.index)}
+                aria-current={isCurrent ? 'step' : undefined}
+                aria-label={`${padStep(step.index)} ${step.label}`}
+                title={`${padStep(step.index)} ${step.label}`}
+                className={`${segmentClass} focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--red-600)]`}
+              />
+            ) : (
               <div
                 key={step.index}
-                className={`h-1.5 min-w-0 flex-1 ${
-                  isCurrent
-                    ? 'bg-[var(--red-700)]'
-                    : isCompleted
-                      ? 'bg-[var(--navy-800)]'
-                      : 'bg-[var(--line)]'
-                }`}
+                className={segmentClass}
                 aria-current={isCurrent ? 'step' : undefined}
                 title={`${padStep(step.index)} ${step.label}`}
               />
