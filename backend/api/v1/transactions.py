@@ -28,6 +28,12 @@ def record_transaction(commitment_id: str, tx_hash: str, tx_type: str, db: Sessi
             detail={"error": {"code": "COMMITMENT_NOT_FOUND", "message": f"Commitment '{commitment_id}' does not exist."}},
         )
 
+    if commitment.state != "funded":
+        raise HTTPException(
+            status_code=409,
+            detail={"error": {"code": "INVALID_STATE", "message": f"Commitment must be funded to verify, current state: {commitment.state}."}},
+        )
+
     existing = db.get(Transaction, tx_hash)
     if existing:
         return {
