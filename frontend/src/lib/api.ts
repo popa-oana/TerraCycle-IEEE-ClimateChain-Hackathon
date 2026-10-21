@@ -42,7 +42,7 @@ function buildApiUrl(path: string): string {
   return `${origin}${API_PREFIX}${path}`;
 }
 
-function readErrorObject(value: unknown): { code: string; message: string } | null {
+export function readErrorObject(value: unknown): { code: string; message: string } | null {
   if (!isRecord(value)) {
     return null;
   }
@@ -52,7 +52,7 @@ function readErrorObject(value: unknown): { code: string; message: string } | nu
   return { code: value.code, message: value.message };
 }
 
-function readErrorPayload(payload: unknown, status: number): { code: string; message: string } {
+export function readErrorPayload(payload: unknown, status: number): { code: string; message: string } {
   if (isRecord(payload)) {
     const direct = readErrorObject(payload.error);
     if (direct) {
@@ -91,7 +91,7 @@ function readErrorPayload(payload: unknown, status: number): { code: string; mes
   };
 }
 
-async function readJsonBody(
+export async function readJsonBody(
   response: Response,
 ): Promise<{ ok: true; value: unknown } | { ok: false }> {
   try {
