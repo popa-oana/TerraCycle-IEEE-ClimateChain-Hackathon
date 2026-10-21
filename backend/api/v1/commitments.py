@@ -15,12 +15,70 @@ router = APIRouter(tags=["commitments"])
 FIXTURE_PATH = Path(__file__).resolve().parents[3] / "data" / "fixtures" / "demo.json"
 SETTLE_DAYS = 30
 
+# Rotation fields that are presentation-only and therefore not part of the
+# signed plan. The rotation "score" is a relative ranking hint for the plan
+# response: it is a float, and the canonical plan snapshot admits no JSON
+# floats (see backend/hashing.py::canonical_bytes). The canonical plan snapshot
+# fixture (data/fixtures/canonical_plan_snapshot.json) carries no score either.
+NON_CANONICAL_ROTATION_KEYS = ("score",)
+
+
+def _canonical_rotation(rotation: dict) -> dict:
+    """The rotation as it enters the canonical (signed) plan snapshot."""
+    return {k: v for k, v in rotation.items() if k not in NON_CANONICAL_ROTATION_KEYS}
+
+
+def _fixture_conflict(parcel_id: str, key: str) -> HTTPException:
+    return HTTPException(
+        status_code=500,
+        detail={"error": {"code": "FIXTURE_CONFLICT", "message": f"Conflicting '{key}' for parcel '{parcel_id}' between the parcels fixture and reference_parcel."}},
+    )
+
 
 def _load_bytes32_map() -> dict[str, dict]:
+    """
+    Builds the parcel_id -> metadata map used for bytes32 resolution.
+
+    The per-parcel records live in "parcels", while the authoritative bytes32
+    identifiers (and the season mapping) live in "reference_parcel". The
+    reference record is merged into its matching parcels entry: missing
+    identifiers are filled in, existing parcel metadata is preserved, and
+    conflicting identifiers are reported instead of being silently overwritten.
+    """
     data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
-    parcels = {p["parcel_id"]: p for p in data.get("parcels", [])}
-    ref = data.get("reference_parcel", {})
-    parcels.setdefault(ref.get("parcel_id", ""), ref)
+    parcels = {p["parcel_id"]: dict(p) for p in data.get("parcels", [])}
+    ref = data.get("reference_parcel") or {}
+    ref_id = ref.get("parcel_id")
+
+    if not ref_id:
+        return parcels
+
+    entry = parcels.get(ref_id)
+    if entry is None:
+        parcels[ref_id] = dict(ref)
+        return parcels
+
+    # The season mapping (season_id <-> season_id_bytes32) travels as a unit:
+    # never mix the bytes32 of one season with the id of another.
+    if entry.get("season_id_bytes32"):
+        if entry["season_id_bytes32"] != ref.get("season_id_bytes32"):
+            raise _fixture_conflict(ref_id, "season_id_bytes32")
+        if entry.get("season_id") and entry["season_id"] != ref.get("season_id"):
+            raise _fixture_conflict(ref_id, "season_id")
+    else:
+        if entry.get("season_id") and entry["season_id"] != ref.get("season_id"):
+            raise _fixture_conflict(ref_id, "season_id")
+        if ref.get("season_id_bytes32"):
+            entry["season_id_bytes32"] = ref["season_id_bytes32"]
+        if ref.get("season_id") and not entry.get("season_id"):
+            entry["season_id"] = ref["season_id"]
+
+    # The parcel identifier must agree with the authoritative one.
+    if entry.get("parcel_id_bytes32") and entry["parcel_id_bytes32"] != ref.get("parcel_id_bytes32"):
+        raise _fixture_conflict(ref_id, "parcel_id_bytes32")
+    if not entry.get("parcel_id_bytes32") and ref.get("parcel_id_bytes32"):
+        entry["parcel_id_bytes32"] = ref["parcel_id_bytes32"]
+
     return parcels
 
 
@@ -29,7 +87,8 @@ def _get_bytes32(parcel_id: str, season_id: str) -> tuple[str, str]:
     p = data.get(parcel_id, {})
     parcel_b32 = p.get("parcel_id_bytes32")
     season_b32 = p.get("season_id_bytes32")
-    if not parcel_b32 or not season_b32:
+    mapped_season = p.get("season_id")
+    if not parcel_b32 or not season_b32 or (mapped_season and mapped_season != season_id):
         raise HTTPException(
             status_code=422,
             detail={"error": {"code": "VALIDATION_ERROR", "message": f"No bytes32 mapping for parcel '{parcel_id}' or season '{season_id}'."}},
@@ -79,7 +138,7 @@ def prepare_commitment(request: PrepareRequest, db: Session = Depends(get_db)):
         "crop_history": plan.crop_history,
         "treatments": plan.treatments,
         "requested_crop_id": plan.requested_crop_id,
-        "selected_rotation": rotation,
+        "selected_rotation": _canonical_rotation(rotation),
         "beneficiary_address": request.beneficiary_address,
         "verification_policy_id": request.verification_policy_id,
         "rules_version": "rotation-v1",
