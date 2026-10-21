@@ -1,0 +1,7 @@
+# Foundry build output
+out/
+cache/
+broadcast/
+
+# Local Foundry toolchain (see README.md)
+.foundry/
