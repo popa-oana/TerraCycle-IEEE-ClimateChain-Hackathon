@@ -99,6 +99,113 @@ def load_bytecode() -> str:
     return bytecode if bytecode.startswith("0x") else "0x" + bytecode
 
 
+def connect(rpc_url: str) -> Web3:
+    """Connect to the local chain, failing loudly when it is unreachable."""
+    w3 = Web3(Web3.HTTPProvider(rpc_url))
+    if not w3.is_connected():
+        fail(f"Cannot reach a chain at {rpc_url}. Is Anvil running?")
+    return w3
+
+
+def deploy_registry(
+    w3: Web3,
+    abi: list,
+    bytecode: str,
+    verifier: str,
+    deployer: str,
+    private_key: str,
+) -> tuple[str, str]:
+    """Deploy the registry and return (address, deployment transaction hash)."""
+    factory = w3.eth.contract(abi=abi, bytecode=bytecode)
+    deploy_tx = factory.constructor(verifier).build_transaction(
+        {"from": deployer, "nonce": w3.eth.get_transaction_count(deployer), "chainId": w3.eth.chain_id}
+    )
+    signed = w3.eth.account.sign_transaction(deploy_tx, private_key=private_key)
+    deploy_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+    deploy_receipt = w3.eth.wait_for_transaction_receipt(deploy_hash)
+    check(deploy_receipt["status"] == 1, "deployment transaction succeeded")
+    return deploy_receipt["contractAddress"], to_hex(deploy_hash)
+
+
+def record_evidence(
+    w3: Web3,
+    registry,
+    commitment_id: str,
+    evidence_hash: str,
+    verdict: int,
+    sender: str,
+    private_key: str,
+) -> dict:
+    """Submit one evidence-recording transaction and return its receipt."""
+    record_tx = registry.functions.recordEvidence(commitment_id, evidence_hash, verdict).build_transaction(
+        {"from": sender, "nonce": w3.eth.get_transaction_count(sender), "chainId": w3.eth.chain_id}
+    )
+    signed = w3.eth.account.sign_transaction(record_tx, private_key=private_key)
+    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+    return w3.eth.wait_for_transaction_receipt(tx_hash)
+
+
+def verify_recorded_evidence(
+    registry,
+    receipt: dict,
+    commitment_id: str,
+    evidence_hash: str,
+    verdict: int,
+    verifier: str,
+) -> None:
+    """Check the receipt, the emitted event and the stored record."""
+    check(receipt["status"] == 1, "evidence transaction status is 1 (successful)")
+    check(
+        receipt["to"] == registry.address,
+        f"transaction targets the registry ({receipt['to']})",
+    )
+    check(len(receipt["logs"]) == 1, f"exactly one event was emitted ({len(receipt['logs'])})")
+
+    log = receipt["logs"][0]
+    check(log["address"] == registry.address, "the event was emitted by the registry")
+
+    expected_topic = to_hex(Web3.keccak(text=EVENT_SIGNATURE))
+    check(to_hex(log["topics"][0]) == expected_topic, f"event signature is {EVENT_SIGNATURE}")
+    check(
+        to_hex(log["topics"][1]) == to_hex(commitment_id),
+        "event carries the submitted commitment id",
+    )
+    check(
+        to_hex(log["topics"][2]) == to_hex(evidence_hash),
+        "event carries the submitted evidence hash",
+    )
+    check(
+        int(to_hex(log["topics"][3]), 16) == verdict,
+        f"event carries verdict {verdict}",
+    )
+    recorder, recorded_at = abi_decode(["address", "uint256"], bytes(log["data"]))
+    check(
+        Web3.to_checksum_address(recorder) == Web3.to_checksum_address(verifier),
+        f"event records the authorized verifier as recorder ({recorder})",
+    )
+    check(recorded_at > 0, f"event records a block timestamp ({recorded_at})")
+
+    stored = registry.functions.getEvidence(commitment_id).call()
+    stored_commitment_id, stored_evidence_hash, stored_verdict, _stored_recorded_at, stored_recorder = stored
+    check(
+        to_hex(stored_commitment_id) == to_hex(commitment_id),
+        f"stored commitment id matches ({to_hex(stored_commitment_id)})",
+    )
+    check(
+        to_hex(stored_evidence_hash) == to_hex(evidence_hash),
+        f"stored evidence hash matches ({to_hex(stored_evidence_hash)})",
+    )
+    check(stored_verdict == verdict, f"stored verdict matches ({stored_verdict})")
+    check(
+        Web3.to_checksum_address(stored_recorder) == Web3.to_checksum_address(verifier),
+        f"stored recorder matches ({stored_recorder})",
+    )
+    check(
+        registry.functions.hasEvidence(commitment_id).call() is True,
+        "hasEvidence() reports the commitment id as recorded",
+    )
+
+
 def main() -> int:
     rpc_url = os.environ.get("ANVIL_RPC_URL", "http://127.0.0.1:8545")
     private_key = os.environ.get("ANVIL_PRIVATE_KEY")
@@ -114,9 +221,7 @@ def main() -> int:
     print("== TerraCycle evidence registry :: local smoke test ==")
     print(f"RPC URL        : {rpc_url}")
 
-    w3 = Web3(Web3.HTTPProvider(rpc_url))
-    if not w3.is_connected():
-        fail(f"Cannot reach a chain at {rpc_url}. Is Anvil running?")
+    w3 = connect(rpc_url)
     chain_id = w3.eth.chain_id
     block_number = w3.eth.block_number
     check(True, f"connected to a local chain (chain id {chain_id}, block {block_number})")
@@ -142,17 +247,11 @@ def main() -> int:
             "registry contract code is present at the supplied address",
         )
     else:
-        factory = w3.eth.contract(abi=abi, bytecode=load_bytecode())
-        deploy_tx = factory.constructor(verifier).build_transaction(
-            {"from": deployer, "nonce": w3.eth.get_transaction_count(deployer), "chainId": chain_id}
+        registry_address, deploy_hash = deploy_registry(
+            w3, abi, load_bytecode(), verifier, deployer, private_key
         )
-        signed = w3.eth.account.sign_transaction(deploy_tx, private_key=private_key)
-        deploy_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
-        deploy_receipt = w3.eth.wait_for_transaction_receipt(deploy_hash)
-        check(deploy_receipt["status"] == 1, "deployment transaction succeeded")
-        registry_address = deploy_receipt["contractAddress"]
         print(f"Registry       : {registry_address}")
-        print(f"Deploy tx      : {to_hex(deploy_hash)}")
+        print(f"Deploy tx      : {deploy_hash}")
 
     registry = w3.eth.contract(address=registry_address, abi=abi)
 
@@ -168,67 +267,15 @@ def main() -> int:
     )
 
     print("\n-- recording one evidence entry (TEST values) --")
-    record_tx = registry.functions.recordEvidence(
-        TEST_COMMITMENT_ID, TEST_EVIDENCE_HASH, TEST_VERDICT
-    ).build_transaction(
-        {"from": verifier, "nonce": w3.eth.get_transaction_count(verifier), "chainId": chain_id}
+    receipt = record_evidence(
+        w3, registry, TEST_COMMITMENT_ID, TEST_EVIDENCE_HASH, TEST_VERDICT, verifier, private_key
     )
-    signed = w3.eth.account.sign_transaction(record_tx, private_key=private_key)
-    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
-    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-    tx_hash_hex = to_hex(tx_hash)
+    tx_hash_hex = to_hex(receipt["transactionHash"])
     print(f"Tx hash        : {tx_hash_hex}")
 
-    check(receipt["status"] == 1, "evidence transaction status is 1 (successful)")
-    check(
-        receipt["to"] == registry_address,
-        f"transaction targets the registry ({receipt['to']})",
-    )
-    check(len(receipt["logs"]) == 1, f"exactly one event was emitted ({len(receipt['logs'])})")
-
-    log = receipt["logs"][0]
-    check(log["address"] == registry_address, "the event was emitted by the registry")
-
-    expected_topic = to_hex(Web3.keccak(text=EVENT_SIGNATURE))
-    check(to_hex(log["topics"][0]) == expected_topic, f"event signature is {EVENT_SIGNATURE}")
-    check(
-        to_hex(log["topics"][1]) == to_hex(TEST_COMMITMENT_ID),
-        "event carries the submitted commitment id",
-    )
-    check(
-        to_hex(log["topics"][2]) == to_hex(TEST_EVIDENCE_HASH),
-        "event carries the submitted evidence hash",
-    )
-    check(
-        int(to_hex(log["topics"][3]), 16) == TEST_VERDICT,
-        f"event carries verdict {TEST_VERDICT}",
-    )
-    recorder, recorded_at = abi_decode(["address", "uint256"], bytes(log["data"]))
-    check(
-        Web3.to_checksum_address(recorder) == Web3.to_checksum_address(verifier),
-        f"event records the authorized verifier as recorder ({recorder})",
-    )
-    check(recorded_at > 0, f"event records a block timestamp ({recorded_at})")
-
-    print("\n-- reading the evidence back from the contract --")
-    stored = registry.functions.getEvidence(TEST_COMMITMENT_ID).call()
-    stored_commitment_id, stored_evidence_hash, stored_verdict, stored_recorded_at, stored_recorder = stored
-    check(
-        to_hex(stored_commitment_id) == to_hex(TEST_COMMITMENT_ID),
-        f"stored commitment id matches ({to_hex(stored_commitment_id)})",
-    )
-    check(
-        to_hex(stored_evidence_hash) == to_hex(TEST_EVIDENCE_HASH),
-        f"stored evidence hash matches ({to_hex(stored_evidence_hash)})",
-    )
-    check(stored_verdict == TEST_VERDICT, f"stored verdict matches ({stored_verdict})")
-    check(
-        Web3.to_checksum_address(stored_recorder) == Web3.to_checksum_address(verifier),
-        f"stored recorder matches ({stored_recorder})",
-    )
-    check(
-        registry.functions.hasEvidence(TEST_COMMITMENT_ID).call() is True,
-        "hasEvidence() reports the commitment id as recorded",
+    print("\n-- verifying the receipt, the event and the stored record --")
+    verify_recorded_evidence(
+        registry, receipt, TEST_COMMITMENT_ID, TEST_EVIDENCE_HASH, TEST_VERDICT, verifier
     )
 
     print(f"\nALL {_checks} CHECKS PASSED")

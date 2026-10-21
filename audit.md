@@ -19,3 +19,15 @@
 - Transaction: `0xb12c70b050beed7de5a7fb14b6d53141b5960ee397f63ac29b653f5293a0135a`, status 0x1, 1 event, read-back matches exactly
 - Remaining: None
 - Next: TASK-002C — Real Satellite Evidence Hash Integration
+
+### TASK-002C — Real Satellite Evidence on Blockchain
+- Status: COMPLETE
+- Changed: `contracts/smoke_test.py` (refactored into reusable helpers), `contracts/smoke_test_real_evidence.py` (new), `tests/test_real_evidence_blockchain.py` (new), `contracts/README.md`, `audit.md`
+- Done: Generated genuine evidence for `parcel_01` with the existing verifier, canonical evidence builder and hashing, then recorded it on local Anvil; reused the existing preparation flow for the commitment metadata.
+- Tests: new focused tests 13 passed (1 skipped without Anvil); evidence builder + hashing 48 passed; full Python 550 passed; `forge test -vv` 15 passed, 0 failed; real-evidence smoke test exit 0.
+- Parcel: `parcel_01` / `season-2024`, policy `cover-v1`, `parcel_01_2024_quality.csv`
+- Evidence hash: `0x281cf44e592ed2e57dd40f16f70c63f96a281ec8fd249b85ce1a96a5cab0dd75` (verdict `nonconform`, code 1)
+- Blockchain: local Anvil chain id 31337, tx `0x92038e82103638376c9357bea1f36a11039311dfac1a732bb564ab1ccd4b949d`, receipt status 1
+- Read-back: MATCH
+- Remaining: None
+- Next: TASK-003, pending authorization
