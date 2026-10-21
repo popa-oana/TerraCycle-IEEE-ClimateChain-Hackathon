@@ -121,6 +121,10 @@ is moved.
 
 The registry can be deployed to a **local** Anvil chain and exercised with one real transaction.
 
+> For the complete, tested Windows startup of the whole demo — Anvil, the real satellite
+> evidence run, FastAPI, the proof server, React and both surfaces — see
+> [`../demo/README.md`](../demo/README.md).
+
 Two scripts are available:
 
 | Script | Evidence |

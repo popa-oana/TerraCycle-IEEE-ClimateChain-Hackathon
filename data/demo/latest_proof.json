@@ -1,12 +1,12 @@
 {
   "schema_version": "demo-proof-v1",
-  "generated_at": "2026-10-21T16:19:53Z",
+  "generated_at": "2026-10-21T18:40:30Z",
   "run": {
     "status": "success",
     "local_only": true,
     "network": "anvil-local",
     "chain_id": 31337,
-    "rpc_url": "http://127.0.0.1:8545"
+    "rpc_url": "http://127.0.0.1:8547"
   },
   "parcel": {
     "parcel_id": "parcel_01",
@@ -48,9 +48,9 @@
   "blockchain": {
     "network": "anvil-local",
     "chain_id": 31337,
-    "registry_address": "0x5eb3Bc0a489C5A8288765d2336659EbCA68FCd00",
-    "deploy_tx_hash": "0x57bd1b22540df0095289e7e25fe8ebae9d788a1b1041c0c68daab6eeb18cf004",
-    "tx_hash": "0x78187395d4c1e9bafda1df8d571318109b83e15839a9bee408d75e62ec4d86a7",
+    "registry_address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    "deploy_tx_hash": "0x55f450d33bf8a7ffb05a15710ba10f6e70b86522c25c679a707c70104d5bb6a5",
+    "tx_hash": "0xb1efcaf297feb065c83c04416be3df9ea37d428532841db2258acaa8a88e03bb",
     "receipt_status": 1,
     "event": {
       "name": "EvidenceRecorded",
@@ -58,7 +58,7 @@
       "evidence_hash": "0x281cf44e592ed2e57dd40f16f70c63f96a281ec8fd249b85ce1a96a5cab0dd75",
       "verdict_code": 1,
       "recorder": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "recorded_at": 1792599593
+      "recorded_at": 1792608030
     },
     "on_chain": {
       "commitment_id": "0x3e92e0db88d6afea9edc4eedf62fffa4d92bcdfc310dccbe943747fe8302e871",

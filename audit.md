@@ -100,3 +100,19 @@ cd frontend && npm run dev                   # React app, http://127.0.0.1:5173/
 - Existing demo: PRESERVED (9/9 checksums)
 - Remaining: None
 - Next: TASK-003C — Clean-Start Demo Validation
+
+### TASK-003C — Clean-Start MVP Validation
+- Status: COMPLETE
+- Changed: `scripts/seed_parcels.py`, `tests/test_seed_parcels.py` (both new), `demo/README.md`, `contracts/README.md`, `data/demo/latest_proof.json`, `audit.md`
+- Done: Validated the MVP from a clean start; fixed two startup blockers: the empty `parcels` table and a UTF-8 BOM in `frontend/.env`.
+- Python: 607 passed, 0 failed
+- Solidity: 15 passed, 0 failed
+- Frontend: tsc PASS, ESLint PASS, Vite build PASS
+- Fresh Anvil: PASS (chain 31337, tx 0xb1efcaf2…e03bb, receipt 1, read-back MATCH)
+- FastAPI parcels: PASS (three genuine parcels, no coordinates)
+- React Step 01: PASS (three selectable parcels)
+- React Step 05: PASS (7 limitations, 5 integrity flags)
+- Standalone demo: PASS (fresh proof, no stale values)
+- Repeatability: PASS (second fresh chain, identical hash 0x281cf44e…dd75)
+- Remaining: None
+- Next: TASK-004 — Submission Readiness
