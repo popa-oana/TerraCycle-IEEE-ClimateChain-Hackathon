@@ -105,7 +105,20 @@ export async function readJsonBody(
   }
 }
 
-function isParcel(value: unknown): value is Parcel {
+/**
+ * A parcel may or may not carry coordinates. When they are present they must
+ * be finite numbers; when they are absent the parcel is still valid, because
+ * the backend does not guarantee a position for every parcel.
+ */
+function hasOptionalNumber(value: unknown): boolean {
+  return (
+    value === undefined ||
+    value === null ||
+    (typeof value === 'number' && Number.isFinite(value))
+  );
+}
+
+export function isParcel(value: unknown): value is Parcel {
   if (!isRecord(value)) {
     return false;
   }
@@ -116,10 +129,8 @@ function isParcel(value: unknown): value is Parcel {
     typeof value.region === 'string' &&
     typeof value.area_ha === 'number' &&
     Number.isFinite(value.area_ha) &&
-    typeof value.latitude === 'number' &&
-    Number.isFinite(value.latitude) &&
-    typeof value.longitude === 'number' &&
-    Number.isFinite(value.longitude) &&
+    hasOptionalNumber(value.latitude) &&
+    hasOptionalNumber(value.longitude) &&
     typeof value.geometry_url === 'string' &&
     typeof value.data_origin === 'string'
   );

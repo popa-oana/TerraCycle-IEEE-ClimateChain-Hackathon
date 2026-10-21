@@ -10,8 +10,15 @@ export interface Parcel {
   display_name: string;
   region: string;
   area_ha: number;
-  latitude: number;
-  longitude: number;
+  /**
+   * Optional. The backend does not guarantee coordinates: the demo parcels are
+   * manually digitised and the region-centroid coordinates used elsewhere in
+   * the project do not describe the actual field geometries, so they are not
+   * published as the parcel position. When a parcel does carry coordinates
+   * they are kept and validated.
+   */
+  latitude?: number;
+  longitude?: number;
   geometry_url: string;
   data_origin: string;
 }

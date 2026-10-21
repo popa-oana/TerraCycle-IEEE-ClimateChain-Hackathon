@@ -88,3 +88,15 @@ cd frontend && npm run dev                   # React app, http://127.0.0.1:5173/
 - Existing demo: PRESERVED (9/9 checksums; pytest 597, forge 15)
 - Remaining: Step 01 still needs `latitude`/`longitude` in the parcel payload
 - Next: TASK-003D.3 — Parcel API Compatibility
+
+### TASK-003D.3 — Parcel API Compatibility
+- Status: COMPLETE
+- Changed: `frontend/src/{lib/types.ts,lib/api.ts}`, `frontend/test/parcel-contract.check.mjs`, `tests/test_frontend_parcel_contract.py`, `audit.md`
+- Done: `latitude`/`longitude` are optional in the parcel type and validator, so the genuine payload is accepted; other fields stay required.
+- Fix: frontend optional coordinates — `origin/main`'s are region centroids 43-190 km off the real GeoJSON, so none were copied or invented.
+- Tests: contract 6 passed; full Python 603 passed; forge 15 passed; tsc, ESLint, Vite clean.
+- Step 01: PASS — real backend + React app: "PARCELS LOADED", three genuine parcels, selectable
+- Step 05: PASS
+- Existing demo: PRESERVED (9/9 checksums)
+- Remaining: None
+- Next: TASK-003C — Clean-Start Demo Validation
