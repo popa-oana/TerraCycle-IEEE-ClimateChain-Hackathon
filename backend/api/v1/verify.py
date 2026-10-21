@@ -4,6 +4,7 @@ backend/api/v1/verify.py — Satellite verification endpoint
 Implements the POST /commitments/{commitment_id}/verify endpoint using the
 canonical evidence builder from backend/services/evidence_builder.py.
 """
+import hashlib
 import json
 import subprocess
 from pathlib import Path
@@ -16,8 +17,8 @@ from backend.hashing import hash_snapshot
 from backend.ml.rules import verify_parcel
 from backend.models import Commitment, Verdict
 from backend.services.evidence_builder import (
-    build_evidence_document,
     build_attestation,
+    build_evidence_document,
     verify_evidence_document,
 )
 
@@ -119,6 +120,14 @@ def verify_commitment(commitment_id: str, db: Session = Depends(get_db)):
 
     # 2. Load verification policy
     policy = _load_policy(commitment.verification_policy_id)
+
+    if commitment.plan_snapshot is not None:
+        recomputed_hash = "0x" + hashlib.sha256(commitment.plan_snapshot).hexdigest()
+        if recomputed_hash != commitment.plan_hash:
+            raise HTTPException(
+                status_code=409,
+                detail={"error": {"code": "PLAN_HASH_MISMATCH", "message": "The stored plan snapshot no longer matches the registered plan hash."}},
+            )
 
     # 3. Call scientific verifier
     try:
