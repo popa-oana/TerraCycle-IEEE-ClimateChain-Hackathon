@@ -1,0 +1,307 @@
+/* TerraCycle Proof — read-only demonstration page.
+   Palette and typography follow DESIGN_OANA.md (the team's design system).
+   Verdict colours are reserved: green = conform only, amber = inconclusive only. */
+
+:root {
+  --navy-950: #101E34;
+  --navy-800: #20334F;
+  --red-700: #8E2230;
+  --red-100: #F5E9E9;
+  --paper: #F8F7F4;
+  --white: #FFFFFF;
+  --ink: #17191C;
+  --muted: #5D6672;
+  --line: #DDE1E3;
+  --green-700: #246457;
+  --green-100: #E8F0ED;
+  --amber-700: #8A6222;
+  --amber-100: #F7F0E2;
+  --teal-700: #0E6E6B;
+
+  --font-body: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+  --font-display: 'Newsreader', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', 'Cascadia Mono', Consolas, monospace;
+
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ---------- header ---------- */
+
+.hero {
+  background: var(--navy-950);
+  color: var(--white);
+  border-bottom: 3px solid var(--teal-700);
+  padding: 44px 0 38px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8FB8B6;
+}
+
+.hero-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(30px, 5vw, 44px);
+  line-height: 1.15;
+}
+
+.hero-subtitle {
+  margin: 8px 0 18px;
+  font-size: 17px;
+  color: #C9D3DF;
+  max-width: 60ch;
+}
+
+.hero-meta {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: #A9B6C6;
+}
+
+/* ---------- badges ---------- */
+
+.badge {
+  display: inline-block;
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badge-local {
+  background: rgba(14, 110, 107, 0.18);
+  border: 1px solid #2F7E7A;
+  color: #9FD6D2;
+}
+
+.badge-inline {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+
+/* ---------- cards ---------- */
+
+main { padding-top: 28px; }
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 22px 24px 24px;
+  margin-bottom: 20px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.card-head h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.step {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--teal-700);
+  border-right: 1px solid var(--line);
+  padding-right: 12px;
+}
+
+.card-error { border-color: #E2C3C3; background: var(--red-100); }
+.card-error .step { color: var(--red-700); border-right-color: #E2C3C3; }
+
+/* ---------- key/value grid ---------- */
+
+.grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0 28px;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.row:last-child { border-bottom: none; }
+
+.row dt {
+  flex: 0 0 auto;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.row dd {
+  margin: 0;
+  text-align: right;
+  font-size: 14px;
+  word-break: break-word;
+  min-width: 0;
+}
+
+/* ---------- hashes ---------- */
+
+code.hash {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  background: #F1F4F5;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 7px;
+  word-break: break-all;
+  display: inline-block;
+  max-width: 100%;
+}
+
+code { font-family: var(--font-mono); font-size: 13px; }
+
+.copy {
+  margin-left: 8px;
+  font: inherit;
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--white);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.copy:hover { border-color: var(--teal-700); color: var(--teal-700); }
+.copy:focus-visible { outline: 2px solid var(--teal-700); outline-offset: 2px; }
+
+/* ---------- verdict ---------- */
+
+.verdict-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.verdict {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.verdict-code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.verdict-conform { background: var(--green-100); color: var(--green-700); border-color: #BBD6CD; }
+.verdict-nonconform { background: var(--red-100); color: var(--red-700); border-color: #E2C3C3; }
+.verdict-inconclusive { background: var(--amber-100); color: var(--amber-700); border-color: #E0D2B2; }
+.verdict-unknown { background: #F1F4F5; color: var(--muted); border-color: var(--line); }
+
+.verdict-reason {
+  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+/* ---------- notes ---------- */
+
+.notes {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.notes li { margin-bottom: 6px; }
+
+.notes-limitations li { color: var(--ink); }
+
+.notes-integrity { list-style: none; padding-left: 0; }
+
+.notes-integrity li::before {
+  content: "✓";
+  color: var(--green-700);
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.note {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.note-lead {
+  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--ink);
+  border-left: 3px solid var(--teal-700);
+  padding-left: 12px;
+}
+
+/* ---------- footer ---------- */
+
+.site-footer {
+  padding: 8px 20px 40px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 620px) {
+  .row { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .row dd { text-align: left; }
+  .badge-inline { margin-left: 0; }
+  .card { padding: 18px 16px 20px; }
+}

@@ -42,3 +42,14 @@
 - Integrity: MATCH
 - Remaining: None
 - Next: TASK-003B — Minimal Read-Only Demo Interface
+
+### TASK-003B — Read-Only Demo Interface
+- Status: COMPLETE
+- Changed: `demo/index.html`, `demo/styles.css`, `demo/app.js`, `demo/README.md` (new), `scripts/serve_demo.py` (new), `tests/test_demo_server.py` (new), `README.md`, `audit.md`
+- Done: A standalone read-only page renders the real `data/demo/latest_proof.json` (no hardcoded values); a stdlib-only localhost server exposes only the page, its assets and `/api/proof`.
+- Tests: new focused tests 16 passed; full Python 581 passed, 0 failed (1 skipped when no local Anvil runs); `forge test -vv` 15 passed; headless Chrome render verified real values, error panel hidden.
+- Demo URL: http://127.0.0.1:8090/
+- Data: data/demo/latest_proof.json
+- Limitations: browser checked via headless Chrome DOM dump only; no screenshot/visual regression; the page shows a snapshot, not live chain state.
+- Remaining: None
+- Next: TASK-003C — Demo Reproducibility and Walkthrough
