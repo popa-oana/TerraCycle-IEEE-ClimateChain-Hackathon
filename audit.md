@@ -56,8 +56,8 @@
 
 ### Frontend Recovery Assessment
 - Status: FOUND
-- Location: `origin/main` (also `origin/feat/oana-parcel-integration`), path `frontend/` — React 19 + Vite 8 + TS + Tailwind 4, 13 commits
-- Build: PASS in an isolated checkout (npm ci, tsc, eslint, vite build OK; needs `@rolldown/binding-win32-x64-msvc` because Node 22.11 < Vite's 22.12)
-- Existing functionality: AppShell, 6-step rail, working ParcelsPage with a typed API client; HistoryPage is a placeholder; steps 03-06 (rotation, commitment, verification, passport) do not exist
-- Recommendation: hybrid — keep the proven read-only demo for Oct 25, recover Oana's frontend afterwards
-- Next: restore `frontend/` from origin/main (with its newer `demo.json`), add one step-05 proof page reading `data/demo/latest_proof.json`
+- Location: `origin/main` + `origin/feat/oana-parcel-integration`, path `frontend/` — React 19 + Vite 8 + TS + Tailwind 4, 13 commits
+- Build: PASS (isolated checkout: npm ci, tsc, eslint, vite build OK; needs the rolldown native binding, Node 22.11 < Vite 22.12)
+- Existing functionality: AppShell, 6-step rail, working ParcelsPage (typed API client); HistoryPage is a placeholder; steps 03-06 absent
+- Recommendation: hybrid — keep the proven read-only demo for Oct 25, recover Oana's frontend after
+- Next: restore `frontend/` from origin/main (plus its newer `demo.json`), add one step-05 proof page for `data/demo/latest_proof.json`
