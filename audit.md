@@ -63,6 +63,38 @@
 - Recommendation: hybrid — keep the proven read-only demo for Oct 25, recover Oana's frontend after
 - Next: restore `frontend/` from origin/main (plus its newer `demo.json`), add one step-05 proof page for `data/demo/latest_proof.json`
 
+#### Overview
+
+The team's frontend was **never lost** — it lives in `origin/main` (and
+`origin/feat/oana-parcel-integration`) under `frontend/`: 27 files, 13 commits, React 19 + Vite 8 +
+TypeScript + Tailwind 4, using the exact `DESIGN_OANA.md` design tokens. It builds cleanly and the
+built app boots and renders.
+
+What it gives us: the AppShell, the six-step navigation rail and a fully working step 01
+(`ParcelsPage` with a strictly typed, runtime-validating API client and honest loading/empty/error
+states). What it does not give us: the **verification and blockchain pages** — steps 03–06
+(`PlanPage`, `CommitmentPage`, `VerificationPage`, `PassportPage`) do not exist in any ref, and
+`HistoryPage` (step 02) is a placeholder. `ethers`, `recharts`, `qrcode.react` and
+`react-router-dom` are declared but never imported. There are no frontend tests.
+
+Two contract mismatches: the frontend's `types.ts` requires `latitude`/`longitude` on every parcel
+(this branch's records have none) and `climate_source` on the plan response (this branch's
+`PlanResponse` has none). Both exist on `origin/main`. **Consequence:** step 01 currently fails
+with `INVALID_RESPONSE` against this branch's backend — verified in a browser, not inferred.
+
+Bigger context: `origin/main` is **ahead** of this branch (44 further files — evidence, passports,
+transactions and climate endpoints, `chain_service.py`, the Node EIP-712 signer, the escrow contract,
+3 test files, `docs/decisions.md`) and its `commitments.py` still contains **both** defects fixed in
+TASK-001/001B.
+
+Decision: **hybrid**. The read-only demo (`demo/index.html`) is the only surface that shows the
+real verdict, canonical evidence hash, local-Anvil transaction, receipt status, event values and
+the on-chain read-back `MATCH`, so it carries the Oct 25 presentation. Oana's frontend is then
+recovered as the frame around it (done in TASK-003D.1) and gains exactly one new page — step 05
+"Verification" — reading the same `data/demo/latest_proof.json`. The detailed sections below
+document each finding, the verified build result, the option comparison and the full integration
+specification.
+
 #### Correction to the previous audit
 
 The earlier emergency audit concluded that **no frontend exists**. That was wrong: it inspected
