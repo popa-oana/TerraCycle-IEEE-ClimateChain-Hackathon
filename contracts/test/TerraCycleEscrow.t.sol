@@ -20,13 +20,23 @@ contract TerraCycleEscrowTest is Test {
     bytes32 public constant EVIDENCE_HASH = keccak256("evidence-document");
     uint256 public constant REWARD = 1 ether;
 
+    // EIP-712 domain. Must match the domain the escrow was deployed with and the
+    // domain the Node signer will use (backend/signer/sign_verdict.mjs).
+    string public constant DOMAIN_NAME = "TerraCycleEscrow";
+    string public constant DOMAIN_VERSION = "1";
+
     function setUp() public {
         verifier = vm.addr(VERIFIER_KEY);
         beneficiary = makeAddr("beneficiary");
         funder = makeAddr("funder");
         stranger = makeAddr("stranger");
 
-        escrow = new TerraCycleEscrow(verifier, "TerraCycleEscrow", "1");
+        // The funder must hold ETH: it funds the commitment and later receives
+        // the refund. Without a balance every fundCommitment{value: ...} call
+        // fails with OutOfFunds before the contract is even reached.
+        vm.deal(funder, 100 ether);
+
+        escrow = new TerraCycleEscrow(verifier, beneficiary, DOMAIN_NAME, DOMAIN_VERSION);
     }
 
     function _register() internal returns (bytes32 commitmentId) {
@@ -46,7 +56,15 @@ contract TerraCycleEscrowTest is Test {
         view
         returns (bytes memory)
     {
-        bytes32 domainSeparator = escrow.domainSeparatorV4();
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes(DOMAIN_NAME)),
+                keccak256(bytes(DOMAIN_VERSION)),
+                block.chainid,
+                address(escrow)
+            )
+        );
         bytes32 typehash = keccak256(
             "VerificationResult(bytes32 commitmentId,bytes32 planHash,bytes32 evidenceHash,uint8 verdict,uint64 validUntil)"
         );
@@ -123,7 +141,7 @@ contract TerraCycleEscrowTest is Test {
         );
 
         assertEq(beneficiary.balance, before + REWARD);
-        (bytes32 planHash, address beneficiary, address funder, uint256 rewardAmount, uint64 settleDeadline, CommitmentState state) = escrow.getCommitment(commitmentId);
+        (bytes32 planHash, address beneficiary, address funder, uint256 rewardAmount, uint64 settleDeadline, TerraCycleEscrow.CommitmentState state) = escrow.getCommitment(commitmentId);
         assertEq(rewardAmount, 0);
         assertEq(uint8(state), uint8(TerraCycleEscrow.CommitmentState.Paid));
     }
@@ -145,7 +163,7 @@ contract TerraCycleEscrowTest is Test {
             signature
         );
 
-        (bytes32 planHash, address beneficiary, address funder, uint256 rewardAmount, uint64 settleDeadline, CommitmentState state) = escrow.getCommitment(commitmentId);
+        (bytes32 planHash, address beneficiary, address funder, uint256 rewardAmount, uint64 settleDeadline, TerraCycleEscrow.CommitmentState state) = escrow.getCommitment(commitmentId);
         assertEq(uint8(state), uint8(TerraCycleEscrow.CommitmentState.Negative));
     }
 
@@ -240,7 +258,18 @@ contract TerraCycleEscrowTest is Test {
         escrow.refund(commitmentId);
         assertEq(funder.balance, before + REWARD);
 
-        (bytes32 , , , uint256 rewardAmount, , TerraCycleEscrow.CommitmentState state) = escrow.getCommitment(commitmentId);
+        (
+            bytes32 readPlanHash,
+            address readBeneficiary,
+            address readFunder,
+            uint256 rewardAmount,
+            uint64 readSettleDeadline,
+            TerraCycleEscrow.CommitmentState state
+        ) = escrow.getCommitment(commitmentId);
+        readPlanHash;
+        readBeneficiary;
+        readFunder;
+        readSettleDeadline;
         assertEq(rewardAmount, 0);
         assertEq(uint8(state), uint8(TerraCycleEscrow.CommitmentState.Refunded));
     }

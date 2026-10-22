@@ -1,12 +1,18 @@
-# TerraCycle Evidence Registry (TASK-002A)
+# TerraCycle Solidity contracts
 
-Minimal, append-only Solidity registry that records the **canonical evidence hash** and the
-**verifier verdict** of a TerraCycle commitment.
+This project holds **two separate, independently identifiable contracts**:
+
+| Contract | Source | Purpose |
+|---|---|---|
+| `TerraCycleEvidenceRegistry` | TASK-002A | Minimal, append-only Solidity registry that records the **canonical evidence hash** and the **verifier verdict** of a TerraCycle commitment. Holds no ETH. |
+| `TerraCycleEscrow` | TASK-004A | Commitment lifecycle with ETH escrow: register, fund, EIP-712-authorised settlement, refund. |
+
+## TerraCycle Evidence Registry (TASK-002A)
 
 - **Contract**: `contracts/src/TerraCycleEvidenceRegistry.sol`
 - **Tests**: `contracts/test/TerraCycleEvidenceRegistry.t.sol` (15 tests)
 - **ABI**: `contracts/abi/TerraCycleEvidenceRegistry.json`
-- **Toolchain**: Foundry (`forge`), Solidity `0.8.24`, `forge-std` `v1.17.0` (git submodule)
+- **Toolchain**: Foundry (`forge`), Solidity `0.8.24`, `forge-std` `v1.17.0` and OpenZeppelin Contracts `v5.7.0` (git submodules)
 
 ## Constructor
 
@@ -82,8 +88,222 @@ Any other value is rejected.
   backend over the canonical evidence document bytes. This contract only records what an
   authorized party submits.
 
-It is **not** a drop-in replacement for the planned `TerraCycleEscrow` contract (see
-`TerraCycleEscrow.sol` on `origin/main`, which keeps escrow, EIP-712 and settlement).
+It is **not** a drop-in replacement for the `TerraCycleEscrow` contract, which now lives in
+this same project at `contracts/src/TerraCycleEscrow.sol` (see below). The two contracts are
+deliberately separate and separately identifiable:
+
+| Contract | Holds ETH | Purpose |
+|---|---|---|
+| `TerraCycleEvidenceRegistry` | no | Append-only record of an evidence hash + verdict |
+| `TerraCycleEscrow` | yes | Commitment lifecycle: register, fund, settle, refund |
+
+## The escrow contract (TASK-004A)
+
+Recovered from `origin/main` (`cab1993…` era) and validated locally. It is **not** wired to
+the backend yet — that is TASK-004B.
+
+- **Contract**: `contracts/src/TerraCycleEscrow.sol`
+- **Tests**: `contracts/test/TerraCycleEscrow.t.sol` (16), `contracts/test/TerraCycleEscrowSecurity.t.sol` (34),
+  `contracts/test/TerraCycleEscrowZeroBeneficiary.t.sol` (11),
+  `contracts/test/TerraCycleEscrowRegistrationAuth.t.sol` (16),
+  `contracts/test/TerraCycleEscrowInvariant.t.sol` (6 invariants)
+- **ABI**: `contracts/abi/TerraCycleEscrow.json`
+- **Dependencies**: OpenZeppelin Contracts **v5.7.0** (git submodule, pinned in `foundry.lock`)
+
+### The trust model
+
+The contract has **four distinct roles**. Two of them are on-chain authorities,
+set once at deployment and stored as `immutable`; the other two are per-commitment.
+
+| Role | On chain? | Who it is | What it may do |
+|---|---|---|---|
+| **registrar** | yes, `immutable` | the authority that allocates commitment ids | call `registerCommitment` — **and nothing else** |
+| **verifier** | yes, `immutable` | the authority that signs verdicts | sign an EIP-712 attestation that `settle` accepts — **and nothing else** |
+| **beneficiary** | per commitment | the farmer who is paid | receive the reward; **cannot** register or settle |
+| **funder** | per commitment | the buyer who pays | fund the commitment and reclaim it via `refund`; **cannot** register or settle |
+
+```solidity
+constructor(address verifier_, address registrar_, string memory name, string memory version)
+```
+
+The **registrar and the verifier are deliberately separate addresses**. A compromised
+verifier cannot create commitments, and a compromised registrar cannot forge verdicts.
+Neither role can be rotated: both are `immutable`, so changing either requires a new
+deployment. The contract deliberately has **no owner, no admin and no upgrade path**.
+
+#### Why a registrar role is necessary
+
+The commitment id is `keccak256(abi.encode(parcelId, seasonId))` — it does **not**
+depend on the beneficiary. `registeredId` is never cleared. So *any* account could
+reserve a `(parcel, season)` id permanently and lock the legitimate farmer out of that
+parcel for that season, simply by calling `registerCommitment` first. A rule of the
+form `msg.sender == beneficiary` would **not** prevent this, because an attacker can
+register with themselves as the beneficiary. Only a trusted allocator of ids closes
+the hole.
+
+#### The trust assumption (explicit)
+
+The project's architecture names the actor of a registration as the **farmer**
+(`TerraCycle_Ghid_Integrare.md` §"MetaMask: registerCommitment(...)", and
+`docs/api-contract.md` → `"tx_type": "register_commitment", "actor": "farmer"`), and
+specifies that `/commitments/{id}/transactions` must verify "actors". The transition
+table, however, gives `refund` an explicit `msg.sender == funder` rule and gives
+`registerCommitment` **none** — that missing rule is the gap this task closes.
+
+**The MVP assumption is a single trusted registrar.** For the local MVP that is one
+Anvil development account (`0x90F79bf6…`, account #3) standing in for the farmer
+registry. **The role IS centralized**: whoever holds that address can register any
+commitment for any beneficiary, and can therefore squat ids. A production design
+would replace it with a farmer registry (a contract that verifies a farmer's identity
+and forwards the registration), which would keep the same contract interface. That
+is **not** implemented here, and the escrow is **not production-secure**.
+
+#### What an unauthorized account cannot do
+
+- it cannot register a commitment, so it cannot reserve a commitment id;
+- it cannot squat a `(parcel, season)` pair;
+- it cannot emit a `CommitmentRegistered` event;
+- it cannot change any existing commitment: there is no setter for the beneficiary,
+  the plan hash, the reward or the deadline.
+
+#### How the backend will eventually submit registrations
+
+The backend already prepares the commitment off-chain (`POST /commitments/prepare`
+creates the snapshot and the `plan_hash`) and then **records** a mined registration
+transaction (`POST /commitments/{id}/transactions`, `tx_type: "register_commitment"`,
+`actor: "farmer"`). It does not send it: the farmer's wallet does, through MetaMask.
+The backend's checker (`backend/services/chain_service.py::_check_register`, currently
+only on `origin/main`) validates `parcelId`, `seasonId` and `planHash` — it does **not**
+yet check `tx["from"]` against the registrar. That backend check is a separate task
+(TASK-004B.2); the contract already enforces it.
+
+### State machine
+
+```text
+None ──registerCommitment──> Registered ──fundCommitment──> Funded
+                                                              │
+                          settle(conform = 0) ────────────────┼──> Paid       (beneficiary paid)
+                          settle(nonconform/inconclusive) ─────┴──> Negative  (funder may refund)
+
+Negative   ──refund──> Refunded
+Funded     ──refund (only after settleDeadline)──> Refunded
+```
+
+`settle` requires an EIP-712 signature from the immutable `verifier`. The digest binds
+`commitmentId`, `planHash`, `evidenceHash`, `verdict` and `validUntil`, so a signed
+attestation is bound to exactly one commitment and can be consumed exactly once.
+
+### Fixed vulnerability: unauthorized commitment registration (TASK-004B.2B)
+
+**The bug.** `registerCommitment` had **no `msg.sender` condition**, so any account
+could create a commitment for any `(parcel, season)` pair and permanently reserve that
+commitment id, locking the legitimate farmer out.
+
+**The fix.** A new `NotRegistrar()` error and a check at the top of
+`registerCommitment`:
+
+```solidity
+if (msg.sender != registrar) {
+    revert NotRegistrar();
+}
+```
+
+The check runs **before** the duplicate, plan-hash and beneficiary checks, so an
+unauthorized caller learns nothing about whether a commitment id exists. The
+authorization decision is made by the contract, not by the backend.
+
+Coverage: `contracts/test/TerraCycleEscrowRegistrationAuth.t.sol` (16 tests, including
+a fuzz test over the caller address, the parcel, the season and the plan hash) plus two
+new invariants in `contracts/test/TerraCycleEscrowInvariant.t.sol` — an unauthorized
+registration must never succeed, and it must always fail with `NotRegistrar()`.
+
+### Fixed vulnerability: zero-address payout (TASK-004B.2A)
+
+**The bug.** `registerCommitment` accepted `address(0)` as the payout beneficiary.
+A transfer to the zero address **succeeds** in the EVM — `payable(address(0)).call{
+value: amount}("")` returns `ok == true` — so during settlement the escrowed reward
+left the contract, the commitment was marked `Paid` and the funds became
+**irrecoverable**: nobody controls `address(0)`. Reproduced in the local test EVM
+before the fix:
+
+```text
+VULNERABLE: escrow balance before settle: 1000000000000000000
+VULNERABLE: escrow balance after  settle: 0
+VULNERABLE: address(0) balance before: 0
+VULNERABLE: address(0) balance after : 1000000000000000000
+VULNERABLE: commitment reward recorded : 0
+VULNERABLE: commitment state (2=Funded,3=Paid): 3
+```
+
+The escrow's own accounting still balanced (`balance == sum(rewards)`), which is why
+the invariant suite did not catch it: the money was not lost *by the contract*, it was
+lost *to the zero address*.
+
+**The fix.** Two guards, both raising the new `ZeroBeneficiary()` error:
+
+1. `registerCommitment` rejects a zero beneficiary. The beneficiary is supplied
+   **only** here and there is no setter, so this is the earliest and only boundary
+   at which the value can be refused. The check sits **after** the existing
+   `CommitmentAlreadyRegistered` and `InvalidPlanHash` checks, so the error
+   precedence of every pre-existing input is unchanged.
+2. `_payBeneficiary` re-checks the beneficiary before moving any ETH. This is
+   unreachable today (guard 1 makes it so), but the payout boundary itself must
+   never be able to burn escrowed funds, even if a later change introduces another
+   path that sets a beneficiary.
+
+No economic rule changed: payouts, percentages, rewards, deadlines, verdict handling
+and the refund path are untouched.
+
+Coverage: `contracts/test/TerraCycleEscrowZeroBeneficiary.t.sol` (11 tests, including
+a fuzz test over the beneficiary address) plus two new invariants in
+`contracts/test/TerraCycleEscrowInvariant.t.sol` — no commitment may ever carry a zero
+beneficiary, and a zero-beneficiary registration must never succeed.
+
+### Known gaps (reported, not silently changed)
+
+**These three remain OPEN. The escrow is NOT production-secure or production-ready.**
+
+| Gap | Impact | Status |
+|---|---|---|
+| The agreed reward amount is not bound on-chain | a funder can fund with 1 wei; the amount is only checked off-chain by `chain_service` | **open** — needs an ABI/business-rule change |
+| `settle` ignores `settleDeadline` | a verifier can settle after the deadline, when the funder already had the right to refund | **open** — needs a business decision |
+| `CommitmentSettled` does not emit `evidenceHash` | the on-chain settlement cannot be linked to the SHA-256 evidence hash from the log alone | **open** — ABI change, needed for TASK-004B |
+
+Also still open, and not addressed by TASK-004B.2A or TASK-004B.2B:
+
+| Gap | Impact | Status |
+|---|---|---|
+| The registrar role is a single trusted address | whoever holds it can register any commitment and squat ids | **open** — the MVP assumption; a farmer-registry contract is the production answer |
+| `settleDeadline` is not validated at registration | a commitment can be registered with an already-expired deadline, so a funder can fund and immediately refund | **open** |
+| `settle` does not reject a zero `evidenceHash` | the evidence registry rejects it, the escrow does not | **open** |
+| No rescue path | ETH forced in via `selfdestruct` is stuck forever | **open** — low severity, no reachable path today |
+
+The corresponding behaviour is pinned by executable characterisation tests named
+`test_FINDING_*` in `contracts/test/TerraCycleEscrowSecurity.t.sol`, so no gap can be
+closed by accident.
+
+### EIP-712 interoperability (TASK-004B.1)
+
+The Node signer (`backend/signer/sign_verdict.mjs`) now produces a real EIP-712
+signature that the deployed escrow **accepts** on a local Anvil chain, over
+genuine Sentinel-2 evidence (`nonconform`, code 1). The check is a simulation
+(`eth_call`): nothing is settled, no refund is sent, no beneficiary is paid.
+
+```powershell
+cd contracts
+.\.foundry\forge.exe build
+.\.foundry\anvil.exe --host 127.0.0.1 --port 8547 --chain-id 31337   # terminal 1
+
+# terminal 2
+$env:ANVIL_RPC_URL = "http://127.0.0.1:8547"
+$env:ANVIL_PRIVATE_KEY = "<anvil development key>"
+$env:VERIFIER_PRIVATE_KEY = $env:ANVIL_PRIVATE_KEY
+..\.venv\Scripts\python.exe verify_eip712_signature.py
+```
+
+The full workflow, the EIP-712 domain, the SHA-256 vs Keccak-256 distinction and
+the negative-test matrix are documented in
+[`../docs/eip712-signing.md`](../docs/eip712-signing.md).
 
 ## Backend integration (TASK-002B)
 
@@ -337,9 +557,24 @@ Expand-Archive foundry.zip -DestinationPath .foundry
 `forge` also downloads `solc 0.8.24` once into its local cache. `Role_Dorian.md` documents WSL2 as
 the team's Windows approach; a WSL2 distribution was not installed on this machine.
 
-Dependencies are vendored as git submodules, matching the convention already used on the
-`origin/feat/shit` branch:
+Dependencies are vendored as git submodules. Both must be initialised or the build fails:
 
 ```bash
 git submodule update --init --recursive
 ```
+
+| Submodule | Version | Pinned in | Required by |
+|---|---|---|---|
+| `contracts/lib/forge-std` | `v1.17.0` (`f3dae6e`) | `contracts/foundry.lock` | both contracts and all tests |
+| `contracts/lib/openzeppelin-contracts` | `v5.7.0` (`cab1993`) | `contracts/foundry.lock` | `TerraCycleEscrow` only (`EIP712`, `ECDSA`, `ReentrancyGuard`) |
+
+> **Note (TASK-004A).** On `origin/main` the `openzeppelin-contracts` gitlink exists in the
+> tree but `.gitmodules` does **not** declare it, so `git submodule update --init --recursive`
+> never initialises it and `forge build` cannot resolve
+> `@openzeppelin/contracts/utils/cryptography/EIP712.sol`. The `.gitmodules` entry is fixed on
+> this branch. If a clone fails with an unresolved import, check
+> `git submodule status` lists both entries.
+
+The OpenZeppelin version is not arbitrary: the escrow contract uses the **v5** API
+(`_hashTypedDataV4`, `ECDSA.recover` reverting on a malformed signature). The v4 API used by
+the original test file (`domainSeparatorV4()` as a public function) was removed in v5.

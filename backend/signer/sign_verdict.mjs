@@ -25,7 +25,7 @@ function fail(message) {
   process.exit(1);
 }
 
-function main() {
+async function main() {
   const privateKey = process.env.VERIFIER_PRIVATE_KEY;
   if (!privateKey) {
     fail("VERIFIER_PRIVATE_KEY is not set");
@@ -71,7 +71,10 @@ function main() {
 
   let signature;
   try {
-    signature = wallet.signTypedData(domain, VERIFICATION_RESULT_TYPES, message);
+    // ethers v6 `signTypedData` is async: it returns a Promise<string>.
+    // It MUST be awaited, otherwise `signature` holds a Promise and the
+    // `typeof signature !== "string"` check below always fails.
+    signature = await wallet.signTypedData(domain, VERIFICATION_RESULT_TYPES, message);
   } catch (err) {
     fail(`Signing failed: ${err.message}`);
   }
@@ -83,4 +86,9 @@ function main() {
   process.stdout.write(JSON.stringify({ signature }) + "\n");
 }
 
-main();
+// `main()` is async: any rejection that escapes it must still fail loudly with
+// a non-zero exit status instead of becoming an unhandled rejection.
+main().catch((err) => {
+  process.stderr.write(`${err && err.message ? err.message : String(err)}\n`);
+  process.exit(1);
+});

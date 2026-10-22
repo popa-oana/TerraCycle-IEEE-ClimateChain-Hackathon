@@ -40,6 +40,15 @@ contract TerraCycleEscrow is EIP712, ReentrancyGuard {
 
     address public immutable verifier;
 
+    /// @notice The only address allowed to register commitments.
+    /// @dev This role is DELIBERATELY distinct from `verifier`. The verifier
+    ///      attests to a verdict; the registrar allocates commitment ids.
+    ///      Granting a commitment to a farmer is a farmer-side act, while
+    ///      signing a verdict is an operator-side act. Keeping them separate
+    ///      means a compromised verifier cannot create commitments, and a
+    ///      compromised registrar cannot forge verdicts.
+    address public immutable registrar;
+
     mapping(bytes32 => Commitment) public commitments;
     mapping(bytes32 => bool) public registeredId;
 
@@ -52,6 +61,8 @@ contract TerraCycleEscrow is EIP712, ReentrancyGuard {
     event CommitmentRefunded(bytes32 indexed commitmentId, address funder, uint256 amount);
 
     error VerifierZeroAddress();
+    error RegistrarZeroAddress();
+    error NotRegistrar();
     error CommitmentAlreadyRegistered();
     error InvalidPlanHash();
     error InvalidReward();
@@ -67,14 +78,27 @@ contract TerraCycleEscrow is EIP712, ReentrancyGuard {
     error InvalidState();
     error TransferFailed();
     error DeadlineNotExpired();
+    error ZeroBeneficiary();
 
-    constructor(address verifier_, string memory name, string memory version)
-        EIP712(name, version)
-    {
+    /**
+     * @param verifier_   The address authorized to sign settlement attestations.
+     * @param registrar_  The address authorized to register commitments.
+     * @dev Both roles are immutable and both are set once, at deployment.
+     */
+    constructor(
+        address verifier_,
+        address registrar_,
+        string memory name,
+        string memory version
+    ) EIP712(name, version) {
         if (verifier_ == address(0)) {
             revert VerifierZeroAddress();
         }
+        if (registrar_ == address(0)) {
+            revert RegistrarZeroAddress();
+        }
         verifier = verifier_;
+        registrar = registrar_;
     }
 
     function registerCommitment(
@@ -84,11 +108,28 @@ contract TerraCycleEscrow is EIP712, ReentrancyGuard {
         address beneficiary,
         uint64 settleDeadline
     ) external returns (bytes32 commitmentId) {
+        // Authorization comes first. Without it ANY account could reserve a
+        // commitment id: the id is keccak256(parcelId, seasonId) and does not
+        // depend on the beneficiary, and `registeredId` is never cleared, so a
+        // single unauthorized call could lock the legitimate farmer out of a
+        // parcel and season permanently.
+        if (msg.sender != registrar) {
+            revert NotRegistrar();
+        }
         if (registeredId[keccak256(abi.encode(parcelId, seasonId))]) {
             revert CommitmentAlreadyRegistered();
         }
         if (planHash == bytes32(0)) {
             revert InvalidPlanHash();
+        }
+        // The beneficiary is the payout destination. A zero address would make
+        // `payable(address(0)).call{value: ...}` SUCCEED, so the escrowed
+        // reward would leave the contract, be marked as paid and become
+        // irrecoverable. The beneficiary can only be supplied here and there
+        // is no setter, so this is the only boundary at which it can be
+        // rejected.
+        if (beneficiary == address(0)) {
+            revert ZeroBeneficiary();
         }
 
         commitmentId = keccak256(abi.encode(parcelId, seasonId));
@@ -218,6 +259,14 @@ contract TerraCycleEscrow is EIP712, ReentrancyGuard {
     }
 
     function _payBeneficiary(Commitment storage c) private {
+        // Defence in depth. `registerCommitment` already rejects a zero
+        // beneficiary, so this is unreachable today, but a transfer to the zero
+        // address SUCCEEDS and would silently destroy the escrowed funds.
+        // The payout boundary itself must never be able to burn ETH.
+        if (c.beneficiary == address(0)) {
+            revert ZeroBeneficiary();
+        }
+
         uint256 amount = c.reward;
         c.reward = 0;
 
