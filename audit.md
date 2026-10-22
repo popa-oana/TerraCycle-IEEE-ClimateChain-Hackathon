@@ -116,3 +116,57 @@ cd frontend && npm run dev                   # React app, http://127.0.0.1:5173/
 - Repeatability: PASS (second fresh chain, identical hash 0x281cf44e…dd75)
 - Remaining: None
 - Next: TASK-004 — Submission Readiness
+
+### TASK-004A — Escrow Foundation
+- Status: COMPLETE
+- Source: origin/main (byte-identical)
+- Changed: `contracts/{src,test,script}` escrow files; `TerraCycleEscrowSecurity.t.sol`, `TerraCycleEscrowInvariant.t.sol` (new); `.gitmodules`, `contracts/foundry.lock` (OpenZeppelin v5.7.0); `contracts/abi/TerraCycleEscrow.json`, `contracts/README.md`
+- Escrow functions: register, fund, settle (EIP-712), refund; states Registered/Funded/Paid/Negative/Refunded
+- Foundry build: PASS (solc 0.8.24, OZ v5.7.0)
+- Solidity tests: 66 passed, 0 failed (16 escrow, 34 security, 1 invariant, 15 registry)
+- Security findings: registerCommitment unauthenticated; reward unbound on-chain; settle ignores settleDeadline; event omits evidenceHash; zero beneficiary burns payout
+- Local Anvil: deployed; register + fund 0.001 ETH, receipt status 1, funds held; refund after deadline recovered 0.002 ETH
+- Funds: local development ETH only
+- Blockers: none technical; 5 findings need decisions
+- Next: TASK-004B — Signed Satellite Verdict Integration
+
+### TASK-004B.1 — EIP-712 Interoperability
+- Status: COMPLETE
+- Changed: `backend/signer/{sign_verdict.mjs,recover_signer.mjs,sign_verdict.test.mjs,package.json,README.md}`, `contracts/verify_eip712_signature.py`, `tests/test_signer_eip712.py`, `docs/eip712-signing.md`, `contracts/README.md`, `audit.md`
+- Signer: PASS
+- Root cause: `signTypedData()` was not awaited (ethers v6), so every payload exited 1
+- Real evidence: nonconform (code 1), SHA-256 hash 0x281cf44e…dd75
+- EIP-712 domain: chain 31337, escrow 0x5FbDB231…, TerraCycleEscrow v1
+- Address recovery: MATCH
+- Solidity simulation: PASS
+- Negative tests: 10
+- State unchanged: YES
+- Regression tests: Python 632 passed; Node 21 passed; Solidity 66 passed
+- Remaining: five escrow security findings; backend passes a flat message, signer needs {domain, message}
+- Next: TASK-004B.2 — Escrow Security Hardening
+
+### TASK-004B.2A — Zero-Address Payout Protection
+- Status: COMPLETE
+- Changed: `contracts/src/TerraCycleEscrow.sol`, `contracts/test/TerraCycleEscrowZeroBeneficiary.t.sol` (new), `contracts/test/TerraCycleEscrowInvariant.t.sol`, `contracts/abi/TerraCycleEscrow.json`, `contracts/README.md`, `docs/eip712-signing.md`, `audit.md`
+- Vulnerability: `registerCommitment` accepted `address(0)`; the settlement transfer to it SUCCEEDS, so 1 ETH left the escrow, was marked Paid and became unrecoverable
+- Fix: new `ZeroBeneficiary()` error; `registerCommitment` rejects it, `_payBeneficiary` re-checks
+- Regression: FAIL before / PASS after
+- Solidity tests: 77 passed, 0 failed (+11)
+- Python/Node regression: Python 632 passed; Node 21 passed
+- ABI compatibility: additive only; function/event set unchanged
+- Remaining: four escrow security findings
+- Next: TASK-004B.2B — Commitment Registration Authorization
+
+### TASK-004B.2B — Registration Authorization
+- Status: COMPLETE
+- Changed: `contracts/src/TerraCycleEscrow.sol`, `contracts/test/*.t.sol` (+1 new), `contracts/script/Deploy.s.sol`, `contracts/abi/TerraCycleEscrow.json`, `contracts/verify_eip712_signature.py`, `tests/test_signer_eip712.py`, `data/fixtures/demo.json`, `contracts/README.md`, `docs/eip712-signing.md`, `audit.md`
+- Vulnerability: `registerCommitment` had no `msg.sender` check, so any account could reserve a `(parcel, season)` id
+- Registrar model: a distinct immutable `registrar` address, set at deployment, separate from the EIP-712 `verifier`
+- Fix: `if (msg.sender != registrar) revert NotRegistrar();` first
+- Regression: FAIL before / PASS after
+- Solidity tests: 93 passed, 0 failed (+16)
+- Python tests: 632 passed; Node: 21 passed
+- Anvil unauthorized registration: REJECTED
+- Anvil authorized registration: PASS
+- Remaining: three escrow security findings
+- Next: TASK-004B.2C — Reward Commitment Binding
